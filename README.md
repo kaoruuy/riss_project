@@ -1,4 +1,7 @@
 ## INSPIRE RH56E2-2R-T2 command-line control
+```bash
+cd src
+```
 
 The hand CLI uses Modbus TCP at the existing hand address
 `192.168.11.210:6000`. Read status without moving the hand:
