@@ -1,0 +1,314 @@
+{
+    "AI Models": {
+        "valid": [
+            "MULTI CLASS DETECTION is optimized",
+            "MULTI CLASS MEDIUM DETECTION is optimized",
+            "MULTI CLASS ACCURATE DETECTION is optimized",
+            "HUMAN BODY FAST DETECTION is optimized",
+            "HUMAN BODY MEDIUM DETECTION is optimized",
+            "HUMAN BODY ACCURATE DETECTION is optimized",
+            "HUMAN BODY 38 FAST DETECTION is optimized",
+            "HUMAN BODY 38 MEDIUM DETECTION is optimized",
+            "HUMAN BODY 38 ACCURATE DETECTION is optimized",
+            "PERSON HEAD DETECTION is optimized",
+            "PERSON HEAD ACCURATE DETECTION is optimized",
+            "REID ASSOCIATION is optimized",
+            "NEURAL LIGHT DEPTH is optimized",
+            "NEURAL DEPTH is optimized",
+            "NEURAL PLUS DEPTH is optimized"
+        ]
+    },
+    "CUDA Operations": {
+        "cudaDeviceCount": 1,
+        "cudaDriverVersion": 13020,
+        "cudaDriverVersionString": "13.2",
+        "cudaGetDeviceCountResult": 0,
+        "cudaRuntimeLoaded": true,
+        "cudaRuntimeVersion": 13030,
+        "cudaRuntimeVersionString": "13.3",
+        "cudaTestVersion": "1.0",
+        "gpuTests": [
+            {
+                "computeCapability": "12.0",
+                "computeCapabilityMajor": 12,
+                "computeCapabilityMinor": 0,
+                "freeResult": 0,
+                "freeSuccess": true,
+                "gpuId": 0,
+                "gpuName": "NVIDIA GeForce RTX 5090",
+                "mallocResult": 0,
+                "mallocSuccess": true,
+                "memcpyD2HResult": 0,
+                "memcpyD2HSuccess": true,
+                "memcpyH2DResult": 0,
+                "memcpyH2DSuccess": true,
+                "memoryBusWidthBits": 512,
+                "memsetResult": 0,
+                "memsetSuccess": true,
+                "multiProcessorCount": 170,
+                "pciBusId": 1,
+                "pciDeviceId": 0,
+                "pciDomainId": 0,
+                "setDeviceResult": 0,
+                "testElements": 1048576,
+                "testPassed": true,
+                "testSizeBytes": 4194304,
+                "totalGlobalMemMB": 32077,
+                "validationPassed": true
+            }
+        ],
+        "testSizeMB": 1,
+        "valid": [
+            "<b>GPU 0 (NVIDIA GeForce RTX 5090):</b> CUDA operations working correctly"
+        ]
+    },
+    "Graphics Card": {
+        "deviceCount": 1,
+        "deviceDriverVersion": 13020,
+        "devices": [
+            {
+                "arch": "Unknown Future Architecture",
+                "computeCapability": "12.0",
+                "cores": 0,
+                "name": "NVIDIA GeForce RTX 5090",
+                "totalMemoryBytes": "33635434496",
+                "totalMemoryMB": 32077.25
+            }
+        ],
+        "glx_info": "OpenGL vendor string: NVIDIA Corporation\nOpenGL renderer string: NVIDIA GeForce RTX 5090/PCIe/SSE2\nOpenGL core profile version string: 4.6.0 NVIDIA 595.71.05\nOpenGL core profile shading language version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\nOpenGL core profile extensions:\nOpenGL version string: 4.6.0 NVIDIA 595.71.05\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context flags: (none)\nOpenGL profile mask: (none)\nOpenGL extensions:\nOpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 595.71.05\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\nOpenGL ES profile extensions:\n",
+        "initResult": 0,
+        "valid": [
+            "<b>Graphics card: </b> NVIDIA GeForce RTX 5090"
+        ]
+    },
+    "Processor": {
+        "OS": "Ubuntu 26.04 LTS ",
+        "avxSupported": true,
+        "coreCount": "3241%",
+        "cpu": " AMD Ryzen 9 9950X 16-Core Processor",
+        "datetime": "2026-06-05 17:08:18",
+        "hyperThreading": "1",
+        "motherboard": "MAG B850M MORTAR WIFI (MS-7E61), Micro-Star International Co., Ltd.",
+        "ramCapacity": "63.563428",
+        "ramUsage": "",
+        "ramUsed": "23.634113",
+        "threadCount": "6482",
+        "valid": [
+            "<b>Processor: </b>  AMD Ryzen 9 9950X 16-Core Processor",
+            "<b>Motherboard: </b> MAG B850M MORTAR WIFI (MS-7E61), Micro-Star International Co., Ltd."
+        ]
+    },
+    "USB Camera": {
+        "CorruptedFirmware": [
+        ],
+        "InternalDevicesCount (GMSL)": [
+        ],
+        "InternalDevicesCount (USB)": [
+        ],
+        "MCUDetected": [
+        ],
+        "Serial Number": [
+        ],
+        "USBList": [
+            {
+                "USBMode": 3,
+                "USB_path": "/5/4",
+                "bDescriptorType": 1,
+                "bDeviceProtocol": 1,
+                "bLength": 18,
+                "bMaxPacketSize0": 9,
+                "bNumConfigurations": 1,
+                "bcdDevice": "1.0",
+                "bcdUSB": "3.0",
+                "bcdUSBClass": 239,
+                "bcdUSBSubClass": 2,
+                "busNumber": 2,
+                "device": "ZED mini",
+                "iManufacturer": 1,
+                "iProduct": 2,
+                "iSerial": 0,
+                "idProduct": "0xf682",
+                "idVendor": "0x2b03"
+            },
+            {
+                "USB_path": "/5/2",
+                "idProduct": "0x1790",
+                "idVendor": "0x0b95"
+            },
+            {
+                "USB_path": "/5/1/3",
+                "idProduct": "0x7216",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5/1/2",
+                "idProduct": "0x8156",
+                "idVendor": "0x0bda"
+            },
+            {
+                "USB_path": "/5/1/1",
+                "idProduct": "0x7252",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5/1",
+                "idProduct": "0x7206",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5",
+                "idProduct": "0x0620",
+                "idVendor": "0x05e3"
+            },
+            {
+                "USBMode": 2,
+                "USB_path": "/5/4",
+                "bDescriptorType": 1,
+                "bDeviceProtocol": 0,
+                "bLength": 18,
+                "bMaxPacketSize0": 64,
+                "bNumConfigurations": 1,
+                "bcdDevice": "2.5",
+                "bcdUSB": "2.0",
+                "bcdUSBClass": 0,
+                "bcdUSBSubClass": 0,
+                "busNumber": 1,
+                "device": "ZED mini MCU",
+                "iManufacturer": 1,
+                "iProduct": 2,
+                "iSerial": 3,
+                "idProduct": "0xf681",
+                "idVendor": "0x2b03"
+            },
+            {
+                "USB_path": "/5/3",
+                "idProduct": "0x0933",
+                "idVendor": "0x3434"
+            },
+            {
+                "USB_path": "/5/1/5",
+                "idProduct": "0x7260",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5/1/3/4",
+                "idProduct": "0x7240",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5/1/3",
+                "idProduct": "0x4216",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5/1/1/5",
+                "idProduct": "0x7240",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5/1/1/1",
+                "idProduct": "0xc08b",
+                "idVendor": "0x046d"
+            },
+            {
+                "USB_path": "/5/1/1",
+                "idProduct": "0x4252",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5/1",
+                "idProduct": "0x4206",
+                "idVendor": "0x0424"
+            },
+            {
+                "USB_path": "/5",
+                "idProduct": "0x0610",
+                "idVendor": "0x05e3"
+            },
+            {
+                "USB_path": "/3",
+                "idProduct": "0x1790",
+                "idVendor": "0x0b95"
+            },
+            {
+                "USB_path": "/2",
+                "idProduct": "0x6001",
+                "idVendor": "0x0403"
+            },
+            {
+                "USB_path": "/12",
+                "idProduct": "0xcc78",
+                "idVendor": "0x0db0"
+            },
+            {
+                "USB_path": "/11",
+                "idProduct": "0xe10a",
+                "idVendor": "0x0489"
+            },
+            {
+                "USB_path": "/10",
+                "idProduct": "0x0076",
+                "idVendor": "0x0db0"
+            }
+        ],
+        "USBMode": [
+        ],
+        "ZED Camera Module Detected": [
+        ],
+        "ZED MCU Module Detected": [
+        ],
+        "ZEDCount": [
+        ],
+        "ZEDDetected": [
+        ],
+        "ZEDs": [
+        ],
+        "camera": [
+        ],
+        "error": [
+            "<b>Specific resolutions are not available</b> <br/> Replug your device or connect the camera to another <b>USB 3.0</b> port.",
+            "<b>Specific resolutions are not available</b> <br/> Replug your device or connect the camera to another <b>USB 3.0</b> port."
+        ],
+        "resolutions": [
+        ],
+        "sensors": [
+        ]
+    },
+    "ZED SDK": {
+        "CUDA Toolkit version": "V13.3.33 -->located in /usr/local/cuda-13.3/bin/nvcc",
+        "CUDA loading": false,
+        "GPU Driver Version": "Driver Version                                         : 595.71.05",
+        "GPU Performance": "    Performance State                                  : P0",
+        "ZED SDK Version (Diag)": "5.3.1",
+        "ZED SDK Version (RT)": "5.3.1",
+        "ai": {
+            "checkAI": true,
+            "cudaVersion": 13030,
+            "tensorVersion": 101302
+        },
+        "binFiles": [
+            "libsl_ai.so",
+            "libsl_zed.so"
+        ],
+        "resourcesFiles": [
+            "neural_depth_5.3.model",
+            "neural_depth_light_5.3.model",
+            "objects_accurate_3.2.model",
+            "objects_medium_3.2.model",
+            "objects_performance_3.2.model",
+            "person_head_accurate_2.6.model",
+            "person_head_performance_2.6.model",
+            "person_reid_1.4.model",
+            "skeleton_body18_3.2.model",
+            "skeleton_body18_4.3.model",
+            "skeleton_body38_3.5.model"
+        ],
+        "resourcesFilesExpected": [
+            "objects_performance_3.2"
+        ],
+        "valid": [
+            "<b>ZED SDK version:</b> 5.3.1",
+            "<b>CUDA version:</b> V13.3.33"
+        ]
+    }
+}
