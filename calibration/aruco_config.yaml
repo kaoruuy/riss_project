@@ -1,0 +1,30 @@
+# ArUco marker settings for camera/base calibration.
+# Set marker_length_m and dictionary to match the printed marker or board used.
+dictionary: null
+marker_length_m: null
+
+camera:
+  intrinsics_file: calibration/zed_intrinsics.yaml
+  model: ZED Mini
+  serial_number: 14778242
+  calibration_source: /usr/local/zed/settings/SN14778242.conf
+  resolution: HD720
+  eye: left
+  frame: zed_left_camera_optical_frame
+  fx: 772.11
+  fy: 771.955
+  cx: 626.175
+  cy: 377.329
+  distortion_model: zed_radial_k1_k2_k3_k4
+  distortion_vector: [-0.0302337, 0.00629367, 0.0175478, -0.0115979]
+
+output:
+  base_to_camera_file: calibration/base_to_camera.yaml
+
+detection:
+  corner_refinement: SUBPIX
+  estimate_pose: true
+
+notes:
+  - Common OpenCV dictionaries include DICT_4X4_50, DICT_5X5_100, and DICT_6X6_250.
+  - marker_length_m is the physical black-square side length in meters.

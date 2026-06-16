@@ -1,0 +1,36 @@
+# Transform from robot base frame to ZED camera frame.
+# This is intentionally left uncalibrated because the ZED SDK settings file
+# contains camera intrinsics/stereo extrinsics, not the robot-base-to-camera
+# transform.
+frames:
+  parent: base
+  child: zed_left_camera_optical_frame
+
+camera:
+  model: ZED Mini
+  serial_number: 14778242
+  intrinsics_file: calibration/zed_intrinsics.yaml
+  calibration_source: /usr/local/zed/settings/SN14778242.conf
+
+calibrated: false
+translation_m:
+  x: null
+  y: null
+  z: null
+rotation_quaternion_xyzw:
+  x: null
+  y: null
+  z: null
+  w: null
+
+transform_matrix:
+  - [null, null, null, null]
+  - [null, null, null, null]
+  - [null, null, null, null]
+  - [0.0, 0.0, 0.0, 1.0]
+
+notes:
+  - Current camera intrinsics are for ZED Mini serial 14778242.
+  - ZED stereo baseline is available in calibration/zed_intrinsics.yaml, but it is not a robot-base transform.
+  - Fill this file from a hand-eye or marker-based base-to-camera calibration.
+  - Keep units in meters and use the left camera optical frame unless another frame is documented here.

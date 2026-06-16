@@ -1,0 +1,156 @@
+# ZED Mini intrinsics from /usr/local/zed/settings/SN14778242.conf.
+# Pixel coordinates are for the native images returned at each resolution.
+camera:
+  model: ZED Mini
+  serial_number: 14778242
+  calibration_source: /usr/local/zed/settings/SN14778242.conf
+  settings_modified: "2026-06-16 10:24:56 -0400"
+  live_verified: false
+  live_verification_note: >
+    The SDK could not enumerate a camera when this file was updated because
+    the NVIDIA driver/CUDA device was unavailable. Values come from the newer
+    local ZED settings file for serial number 14778242.
+
+default_resolution: HD720
+distortion_model: zed_radial_k1_k2_k3_k4
+
+resolutions:
+  2K:
+    left:
+      fx: 1544.22
+      fy: 1543.91
+      cx: 1079.35
+      cy: 658.658
+      camera_matrix:
+        - [1544.22, 0.0, 1079.35]
+        - [0.0, 1543.91, 658.658]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0302337
+        k2: 0.00629367
+        k3: 0.0175478
+        k4: -0.0115979
+      distortion_vector: [-0.0302337, 0.00629367, 0.0175478, -0.0115979]
+    right:
+      fx: 1543.56
+      fy: 1544.46
+      cx: 1087.82
+      cy: 636.172
+      camera_matrix:
+        - [1543.56, 0.0, 1087.82]
+        - [0.0, 1544.46, 636.172]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0296556
+        k2: 0.00664544
+        k3: 0.0113869
+        k4: -0.00541721
+      distortion_vector: [-0.0296556, 0.00664544, 0.0113869, -0.00541721]
+
+  FHD:
+    left:
+      fx: 1544.22
+      fy: 1543.91
+      cx: 935.35
+      cy: 577.658
+      camera_matrix:
+        - [1544.22, 0.0, 935.35]
+        - [0.0, 1543.91, 577.658]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0302337
+        k2: 0.00629367
+        k3: 0.0175478
+        k4: -0.0115979
+      distortion_vector: [-0.0302337, 0.00629367, 0.0175478, -0.0115979]
+    right:
+      fx: 1543.56
+      fy: 1544.46
+      cx: 943.82
+      cy: 555.172
+      camera_matrix:
+        - [1543.56, 0.0, 943.82]
+        - [0.0, 1544.46, 555.172]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0296556
+        k2: 0.00664544
+        k3: 0.0113869
+        k4: -0.00541721
+      distortion_vector: [-0.0296556, 0.00664544, 0.0113869, -0.00541721]
+
+  HD720:
+    left:
+      fx: 772.11
+      fy: 771.955
+      cx: 626.175
+      cy: 377.329
+      camera_matrix:
+        - [772.11, 0.0, 626.175]
+        - [0.0, 771.955, 377.329]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0302337
+        k2: 0.00629367
+        k3: 0.0175478
+        k4: -0.0115979
+      distortion_vector: [-0.0302337, 0.00629367, 0.0175478, -0.0115979]
+    right:
+      fx: 771.78
+      fy: 772.23
+      cx: 630.41
+      cy: 366.086
+      camera_matrix:
+        - [771.78, 0.0, 630.41]
+        - [0.0, 772.23, 366.086]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0296556
+        k2: 0.00664544
+        k3: 0.0113869
+        k4: -0.00541721
+      distortion_vector: [-0.0296556, 0.00664544, 0.0113869, -0.00541721]
+
+  VGA:
+    left:
+      fx: 386.055
+      fy: 385.9775
+      cx: 328.5875
+      cy: 196.1645
+      camera_matrix:
+        - [386.055, 0.0, 328.5875]
+        - [0.0, 385.9775, 196.1645]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0302337
+        k2: 0.00629367
+        k3: 0.0175478
+        k4: -0.0115979
+      distortion_vector: [-0.0302337, 0.00629367, 0.0175478, -0.0115979]
+    right:
+      fx: 385.89
+      fy: 386.115
+      cx: 330.705
+      cy: 190.543
+      camera_matrix:
+        - [385.89, 0.0, 330.705]
+        - [0.0, 386.115, 190.543]
+        - [0.0, 0.0, 1.0]
+      distortion_coefficients:
+        k1: -0.0296556
+        k2: 0.00664544
+        k3: 0.0113869
+        k4: -0.00541721
+      distortion_vector: [-0.0296556, 0.00664544, 0.0113869, -0.00541721]
+
+stereo:
+  baseline_mm: 62.6829
+  translation_mm:
+    x: 62.6829
+    y: -0.0555805
+    z: 0.342337
+  rotation_radians:
+    rx: -0.000621541
+    rz: 0.00104417
+  convergence:
+    cv: 0.00847126
