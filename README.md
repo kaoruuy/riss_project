@@ -154,6 +154,5 @@ viewpoints and lighting conditions.
 The tests do not require a camera or API key. Run them from the repository root:
 
 ```bash
-cd ..
-python3 -m unittest discover -s tests -v
+make test
 ```

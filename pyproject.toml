@@ -9,8 +9,8 @@ description = "Infer physical object properties from ZED stereo observations"
 requires-python = ">=3.10"
 
 [project.scripts]
-zed-properties = "physical_properties.cli:main"
+zed-properties = "property_estimation.cli:main"
 inspire-hand = "hand.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["physical_properties*", "hand*"]
+include = ["property_estimation*", "hand*"]

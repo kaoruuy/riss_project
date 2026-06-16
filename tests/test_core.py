@@ -5,12 +5,12 @@ import os
 import unittest
 from unittest.mock import patch
 
-from physical_properties.cli import main
-from physical_properties.fusion import EstimateFusion
-from physical_properties.models import ObservationEstimate, PROPERTY_NAMES
-from physical_properties.openai_vlm import _output_text
-from physical_properties.schema import response_schema
-from physical_properties.zed_camera import DEFAULT_OPEN_TIMEOUT, ZedCamera, _summarize_depth
+from property_estimation.cli import main
+from property_estimation.fusion import EstimateFusion
+from property_estimation.models import ObservationEstimate, PROPERTY_NAMES
+from property_estimation.openai_vlm import _output_text
+from property_estimation.schema import response_schema
+from property_estimation.zed_camera import DEFAULT_OPEN_TIMEOUT, ZedCamera, _summarize_depth
 
 
 def estimate(score: float, confidence: float) -> ObservationEstimate:

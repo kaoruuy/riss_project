@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import glob
+import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,6 +43,24 @@ class ZedCamera:
         resolution = getattr(sl.RESOLUTION, self.resolution, None)
         if resolution is None:
             raise ValueError(f"Unsupported ZED resolution: {self.resolution}")
+
+        if not _cuda_is_available():
+            raise RuntimeError(
+                "Could not open ZED camera because CUDA is not available. "
+                "Verify that the NVIDIA driver is loaded and `nvidia-smi` succeeds."
+            )
+
+        if not _visible_video_devices():
+            raise RuntimeError(
+                "Could not open ZED camera because no /dev/video* devices are visible. "
+                "Check the ZED USB connection and camera permissions."
+            )
+
+        if not sl.Camera.get_device_list():
+            raise RuntimeError(
+                "Could not open ZED camera because the ZED SDK does not enumerate one. "
+                "Check that the camera is connected over a supported USB port and is not busy."
+            )
 
         zed = sl.Camera()
         params = sl.InitParameters()
@@ -84,6 +104,24 @@ class ZedCamera:
             right_image=_mat_to_jpeg(right, sl.ERROR_CODE.SUCCESS),
             depth_summary=_summarize_depth(depth.get_data()),
         )
+
+
+def _cuda_is_available() -> bool:
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+    return result.returncode == 0
+
+
+def _visible_video_devices() -> list[str]:
+    return glob.glob("/dev/video*")
 
 
 def _mat_to_jpeg(mat: object, success_code: object) -> bytes:

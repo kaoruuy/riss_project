@@ -14,7 +14,7 @@ import pyzed.sl as sl
 CAMERA_OPEN_TIMEOUT = 30.0
 
 
-def command_output(command: list[str]) -> str:
+def command_result(command: list[str]) -> tuple[int | None, str]:
     try:
         result = subprocess.run(
             command,
@@ -23,30 +23,47 @@ def command_output(command: list[str]) -> str:
             text=True,
             timeout=10,
         )
-    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-        return str(exc)
-    return (result.stdout + result.stderr).strip() or f"exit code {result.returncode}"
+    except FileNotFoundError as exc:
+        return None, str(exc)
+    except subprocess.TimeoutExpired as exc:
+        return None, str(exc)
+    return result.returncode, (result.stdout + result.stderr).strip()
 
 
-def print_environment() -> list[str]:
+def command_output(command: list[str]) -> str:
+    code, output = command_result(command)
+    if output:
+        return output
+    return f"exit code {code}"
+
+
+def cuda_is_available() -> tuple[bool, str]:
+    code, output = command_result(
+        ["nvidia-smi", "--query-gpu=name,driver_version", "--format=csv,noheader"]
+    )
+    return code == 0, output or f"exit code {code}"
+
+
+def print_environment() -> tuple[list[str], bool]:
     video_devices = glob.glob("/dev/video*")
+    has_cuda, nvidia = cuda_is_available()
 
     print(f"Python: {sys.version.split()[0]} ({sys.executable})")
     print(f"OS: {platform.platform()}")
     print(f"pyzed: {sl.__file__}")
     print(f"ZED SDK: {sl.Camera.get_sdk_version()}")
     print(f"Video devices: {', '.join(video_devices) or 'none'}")
-    print(f"NVIDIA: {command_output(['nvidia-smi', '--query-gpu=name,driver_version', '--format=csv,noheader'])}")
+    print(f"NVIDIA: {nvidia}")
 
     if video_devices:
         print("Processes using video devices:")
         print(command_output(["fuser", "-v", *video_devices]))
 
-    return video_devices
+    return video_devices, has_cuda
 
 
 def main() -> int:
-    print_environment()
+    video_devices, has_cuda = print_environment()
 
     devices = sl.Camera.get_device_list()
     print(f"ZED devices reported by SDK: {len(devices)}")
@@ -57,11 +74,27 @@ def main() -> int:
             f"model={device.camera_model}, state={device.camera_state}"
         )
 
+    if not has_cuda:
+        print(
+            "\nCannot open a ZED camera because CUDA is not available. "
+            "The ZED SDK requires a working NVIDIA driver and CUDA-capable GPU."
+        )
+        print("Fix: verify the NVIDIA driver is loaded, then rerun `nvidia-smi`.")
+        return 2
+
+    if not video_devices:
+        print(
+            "\nCannot open a ZED camera because no /dev/video* devices are visible. "
+            "Check the USB cable/port and camera permissions."
+        )
+        return 2
+
     if not devices:
         print(
-            "\nThe ZED SDK does not currently enumerate a camera. "
-            "Continuing to retry opening it for up to 120 seconds."
+            "\nCannot open a ZED camera because the ZED SDK does not enumerate one. "
+            "Check that the camera is connected over a supported USB port and is not busy."
         )
+        return 2
 
     zed = sl.Camera()
     init_params = sl.InitParameters()
