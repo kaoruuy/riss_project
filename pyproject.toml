@@ -11,6 +11,7 @@ requires-python = ">=3.10"
 [project.scripts]
 zed-properties = "property_estimation.cli:main"
 inspire-hand = "hand.cli:main"
+aruco-pose = "camera.aruco_pose:main"
 
 [tool.setuptools.packages.find]
-include = ["property_estimation*", "hand*"]
+include = ["property_estimation*", "hand*", "camera*"]

@@ -115,12 +115,13 @@ limits active, and refine estimates with tactile feedback.
 - Python 3.10+
 - ZED camera and ZED SDK with Python API (`pyzed`)
 - NumPy
+- OpenCV with ArUco support for marker pose estimation (`opencv-contrib-python`)
 - an OpenAI API key
 
 Check the installed ZED API:
 
 ```bash
-python3 camera/test.py
+python3 src/camera/test.py
 ```
 
 ### Run the Estimator
@@ -148,6 +149,41 @@ Useful options:
 For best results, place one object near the center of the image. Include a
 known-size reference when mass matters, and capture observations from different
 viewpoints and lighting conditions.
+
+## Camera Calibration
+
+Calibration files live in `calibration/`:
+
+- `zed_intrinsics.yaml` stores the current ZED Mini intrinsics for serial
+  `14778242`, copied from `/usr/local/zed/settings/SN14778242.conf`.
+- `aruco_config.yaml` stores the default ArUco/PnP camera parameters.
+- `base_to_camera.yaml` is reserved for a robot-base-to-camera transform. It is
+  still marked `calibrated: false` because the ZED SDK settings do not contain
+  that robot extrinsic.
+
+Estimate the transform between the ZED left camera and an ArUco marker in an
+image:
+
+```bash
+python3 -m camera.aruco_pose image.png \
+  --dictionary DICT_6X6_250 \
+  --marker-length-m 0.05 \
+  --pretty
+```
+
+If the image came from the rectified ZED SDK stream, ignore the raw distortion
+coefficients:
+
+```bash
+python3 -m camera.aruco_pose image.png \
+  --dictionary DICT_6X6_250 \
+  --marker-length-m 0.05 \
+  --ignore-distortion \
+  --pretty
+```
+
+The output includes both `marker_to_camera_matrix` from OpenCV PnP and the
+inverted `camera_to_marker_matrix`.
 
 ## Tests
 

@@ -28,3 +28,5 @@ detection:
 notes:
   - Common OpenCV dictionaries include DICT_4X4_50, DICT_5X5_100, and DICT_6X6_250.
   - marker_length_m is the physical black-square side length in meters.
+  - Run aruco-pose IMAGE --dictionary DICT_6X6_250 --marker-length-m 0.05 to estimate camera-to-marker pose.
+  - Use --ignore-distortion when the input image is already rectified by the ZED SDK.
