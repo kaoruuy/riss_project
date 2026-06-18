@@ -5,12 +5,7 @@ This repository contains tools for:
 - controlling an INSPIRE RH56E2-2R-T2 robotic hand over Modbus TCP
 - estimating an object's physical properties from ZED stereo-camera observations
 
-Start from the repository root, then enter the source directory before running
-the command-line tools:
-
-```bash
-cd src
-```
+Run commands from the repository root.
 
 ## INSPIRE Hand Control
 
@@ -121,7 +116,7 @@ limits active, and refine estimates with tactile feedback.
 Check the installed ZED API:
 
 ```bash
-python3 src/camera/test.py
+python3 camera/test.py
 ```
 
 ### Run the Estimator
