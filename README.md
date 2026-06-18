@@ -156,6 +156,16 @@ Calibration files live in `calibration/`:
   still marked `calibrated: false` because the ZED SDK settings do not contain
   that robot extrinsic.
 
+Generate a printable ArUco marker:
+
+```bash
+python3 -m camera.aruco_generator 0 \
+  --dictionary DICT_6X6_250 \
+  --output aruco_0.png \
+  --size-px 800 \
+  --border-px 100
+```
+
 Estimate the transform between the ZED left camera and an ArUco marker in an
 image:
 
