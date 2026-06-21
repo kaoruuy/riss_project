@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_DICTIONARY = "DICT_6X6_250"
+DEFAULT_DICTIONARY = "DICT_4X4_50"
 DEFAULT_OUTPUT = Path("aruco_marker.png")
 
 
