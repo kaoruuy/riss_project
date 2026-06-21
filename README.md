@@ -89,6 +89,49 @@ python3 -m hand.cli position \
   500 500 500 500 500 500
 ```
 
+## UFACTORY xArm Control
+
+Install the official xArm Python SDK and add the robot IP address to `.env`:
+
+```bash
+python3 -m pip install xarm-python-sdk
+printf 'XARM_IP=192.168.1.XXX\n' >> .env
+```
+
+Read the current TCP pose and joint angles without moving the robot:
+
+```bash
+python3 -m arm.xarm_controller
+```
+
+The wrapper connects with `is_radian=False`, so TCP positions are in
+millimeters and angles are in degrees. On connection it clears warnings and
+errors, enables motion, sets mode `0`, and sets state `0`.
+
+Motion never runs by default. To command a Cartesian TCP pose, pass `--move`
+and an explicit target. The program prints a warning and requires typing
+`MOVE` before executing:
+
+```bash
+python3 -m arm.xarm_controller \
+  --move \
+  --tcp-pose 300 0 200 180 0 0 \
+  --speed 50
+```
+
+Command joint angles in degrees the same way:
+
+```bash
+python3 -m arm.xarm_controller \
+  --move \
+  --joint-angles 0 -30 45 0 60 0 \
+  --speed 20
+```
+
+Use the current TCP pose from `get_tcp_pose()` as the xArm-side
+end-effector pose for hand-eye calibration, together with the camera/ArUco
+transform and the INSPIRE hand setup.
+
 ## ZED Physical-Property Estimator
 
 This prototype captures left/right images and depth statistics from a ZED
