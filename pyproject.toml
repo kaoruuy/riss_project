@@ -10,9 +10,13 @@ requires-python = ">=3.10"
 
 [project.scripts]
 zed-properties = "property_estimation.cli:main"
-inspire-hand = "hand.cli:main"
+inspire-hand = "hand.cli:mSome comments on hand-eye-calibration based on what I saw from your slide:
+1. The camera shouldn't move at all once calibrated, so you probably wanna make the mount more secure, like 3d printing a connector, or tape the camera to the phone holder with heavy duty tape
+2. Putting an aruco marker on the table is a good starting point. For accurate calibration, it's better to attach an aruco marker at the end effector at a known position, and move the end effector around to calibrate with multiple end effector poses
+T^base_cam = T^base_ee * T^ee_marker * T^marker_camain"
 aruco-pose = "camera.aruco_pose:main"
 aruco-marker = "camera.aruco_generator:main"
+zed-pointcloud = "camera.zed_pointcloud:main"
 
 [tool.setuptools.packages.find]
 include = ["property_estimation*", "hand*", "camera*"]

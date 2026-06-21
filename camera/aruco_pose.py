@@ -27,6 +27,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="use zero distortion coefficients, useful for rectified ZED SDK images",
     )
+    parser.add_argument(
+        "--save-transforms",
+        type=Path,
+        help="write calculated calibration transforms to a YAML file",
+    )
+    parser.add_argument(
+        "--ee-marker-transform",
+        type=Path,
+        help="YAML/JSON file containing T_ee_marker as a 4x4 transform matrix",
+    )
+    parser.add_argument(
+        "--base-ee-transform",
+        type=Path,
+        help="YAML/JSON file containing T_base_ee as a 4x4 transform matrix",
+    )
     parser.add_argument("--pretty", action="store_true", help="pretty-print JSON output")
     return parser
 
@@ -55,6 +70,14 @@ def main(argv: list[str] | None = None) -> int:
             "marker_to_camera_matrix": transform["marker_to_camera"].tolist(),
             "camera_to_marker_matrix": transform["camera_to_marker"].tolist(),
         }
+        if args.save_transforms:
+            save_transforms(
+                args.save_transforms,
+                transform,
+                args.ee_marker_transform,
+                args.base_ee_transform,
+                payload,
+            )
         print(json.dumps(payload, indent=2 if args.pretty else None))
     except (FileNotFoundError, ImportError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -68,6 +91,96 @@ def load_config(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"{path} must contain a YAML mapping")
     return data
+
+
+def load_transform_matrix(path: Path, preferred_key: str | None = None) -> np.ndarray:
+    with path.open("r", encoding="utf-8") as file:
+        if path.suffix.lower() == ".json":
+            data = json.load(file)
+        else:
+            data = yaml.safe_load(file)
+
+    matrix = transform_matrix_from_data(data, preferred_key=preferred_key)
+    if matrix is None:
+        raise ValueError(f"{path} must contain a 4x4 transform matrix")
+    return matrix
+
+
+def transform_matrix_from_data(data: Any, preferred_key: str | None = None) -> np.ndarray | None:
+    if preferred_key and isinstance(data, dict) and preferred_key in data:
+        return as_transform_matrix(data[preferred_key])
+
+    if isinstance(data, dict):
+        for key in ("transform_matrix", "matrix", "T", "T_ee_marker", "T_base_ee"):
+            if key in data:
+                return as_transform_matrix(data[key])
+    return as_transform_matrix(data)
+
+
+def as_transform_matrix(value: Any) -> np.ndarray | None:
+    try:
+        matrix = np.asarray(value, dtype=np.float64)
+    except (TypeError, ValueError):
+        return None
+    if matrix.shape != (4, 4):
+        return None
+    if not np.all(np.isfinite(matrix)):
+        raise ValueError("transform matrix must contain only finite numbers")
+    if not np.allclose(matrix[3], [0.0, 0.0, 0.0, 1.0], atol=1e-9):
+        raise ValueError("transform matrix last row must be [0, 0, 0, 1]")
+    return matrix
+
+
+def save_transforms(
+    path: Path,
+    transform: dict[str, np.ndarray],
+    ee_marker_path: Path | None,
+    base_ee_path: Path | None,
+    metadata: dict[str, Any],
+) -> None:
+    t_cam_marker = transform["marker_to_camera"]
+    t_marker_cam = transform["camera_to_marker"]
+
+    transforms = {
+        "T_cam_marker": t_cam_marker.tolist(),
+        "T_marker_cam": t_marker_cam.tolist(),
+    }
+    sources: dict[str, str] = {"T_cam_marker": "aruco_pose"}
+
+    if ee_marker_path:
+        t_ee_marker = load_transform_matrix(ee_marker_path, preferred_key="T_ee_marker")
+        transforms["T_ee_marker"] = t_ee_marker.tolist()
+        sources["T_ee_marker"] = str(ee_marker_path)
+    else:
+        t_ee_marker = None
+
+    if base_ee_path:
+        t_base_ee = load_transform_matrix(base_ee_path, preferred_key="T_base_ee")
+        transforms["T_base_ee"] = t_base_ee.tolist()
+        sources["T_base_ee"] = str(base_ee_path)
+    else:
+        t_base_ee = None
+
+    if t_ee_marker is not None and t_base_ee is not None:
+        transforms["T_base_cam"] = (t_base_ee @ t_ee_marker @ t_marker_cam).tolist()
+        sources["T_base_cam"] = "T_base_ee @ T_ee_marker @ T_marker_cam"
+
+    document = {
+        "frames": {
+            "base": "base",
+            "ee": "end_effector",
+            "marker": f"aruco_marker_{metadata['marker_id']}",
+            "camera": metadata.get("camera_frame"),
+        },
+        "marker_id": metadata["marker_id"],
+        "marker_length_m": metadata["marker_length_m"],
+        "sources": sources,
+        "transforms": transforms,
+    }
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as file:
+        yaml.safe_dump(document, file, sort_keys=False)
 
 
 def required_value(value: Any, name: str) -> Any:

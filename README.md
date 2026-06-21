@@ -176,7 +176,7 @@ Generate a printable ArUco marker:
 
 ```bash
 python3 -m camera.aruco_generator 0 \
-  --dictionary DICT_6X6_250 \
+  --dictionary DICT_4X4_50 \
   --output aruco_0.png \
   --size-px 800 \
   --border-px 100
@@ -186,8 +186,8 @@ Estimate the transform between the ZED left camera and an ArUco marker in an
 image:
 
 ```bash
-python3 -m camera.aruco_pose image.png \
-  --dictionary DICT_6X6_250 \
+python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
+  --dictionary DICT_4X4_50 \
   --marker-length-m 0.05 \
   --pretty
 ```
@@ -196,8 +196,8 @@ If the image came from the rectified ZED SDK stream, ignore the raw distortion
 coefficients:
 
 ```bash
-python3 -m camera.aruco_pose image.png \
-  --dictionary DICT_6X6_250 \
+python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
+  --dictionary DICT_4X4_50 \
   --marker-length-m 0.05 \
   --ignore-distortion \
   --pretty
@@ -205,6 +205,51 @@ python3 -m camera.aruco_pose image.png \
 
 The output includes both `marker_to_camera_matrix` from OpenCV PnP and the
 inverted `camera_to_marker_matrix`.
+
+Save the calculated transforms to a calibration YAML file:
+
+```bash
+python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
+  --dictionary DICT_4X4_50 \
+  --marker-length-m 0.05 \
+  --save-transforms calibration/transforms.yaml \
+  --pretty
+```
+
+The saved file stores:
+
+- `T_cam_marker`, the marker pose in the camera frame
+- `T_marker_cam`, the inverse transform
+
+For hand-eye calibration, provide the known end-effector-to-marker transform
+and a measured robot base-to-end-effector transform:
+
+```bash
+python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
+  --dictionary DICT_4X4_50 \
+  --marker-length-m 0.05 \
+  --ee-marker-transform calibration/ee_marker.yaml \
+  --base-ee-transform calibration/base_ee.yaml \
+  --save-transforms calibration/transforms.yaml \
+  --pretty
+```
+
+Each input transform file can be a YAML or JSON 4x4 matrix, either directly or
+under a matching key:
+
+```yaml
+T_ee_marker:
+  - [1.0, 0.0, 0.0, 0.0]
+  - [0.0, 1.0, 0.0, 0.0]
+  - [0.0, 0.0, 1.0, 0.0]
+  - [0.0, 0.0, 0.0, 1.0]
+```
+
+When both inputs are present, the saved file also includes:
+
+```text
+T_base_cam = T_base_ee @ T_ee_marker @ T_marker_cam
+```
 
 ## Tests
 
