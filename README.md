@@ -114,8 +114,8 @@ and an explicit target. The program prints a warning and requires typing
 ```bash
 python3 -m arm.xarm_controller \
   --move \
-  --tcp-pose 300 0 200 180 0 0 \
-  --speed 50
+  --tcp-pose 300 50 300 180 0 0 \
+  --speed 10
 ```
 
 Command joint angles in degrees the same way:
@@ -124,7 +124,7 @@ Command joint angles in degrees the same way:
 python3 -m arm.xarm_controller \
   --move \
   --joint-angles 0 -30 45 0 60 0 \
-  --speed 20
+  --speed 10
 ```
 
 Use the current TCP pose from `get_tcp_pose()` as the xArm-side
