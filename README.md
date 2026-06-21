@@ -145,6 +145,22 @@ For best results, place one object near the center of the image. Include a
 known-size reference when mass matters, and capture observations from different
 viewpoints and lighting conditions.
 
+### Capture a Colored Point Cloud
+
+Capture left RGB plus depth from the ZED and save a colored point cloud:
+
+```bash
+python3 -m camera.zed_pointcloud \
+  --output zed_pointcloud.ply \
+  --stride 2 \
+  --max-depth-m 3.0
+```
+
+The command projects each valid depth pixel into XYZ using the active ZED left
+camera intrinsics and writes RGB colors from the left image. Use `.ply` for a
+portable ASCII point cloud or `.npz` for compressed NumPy arrays containing
+`points` and `colors`.
+
 ## Camera Calibration
 
 Calibration files live in `calibration/`:
