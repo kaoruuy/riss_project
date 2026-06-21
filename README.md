@@ -95,7 +95,6 @@ Install the official xArm Python SDK and add the robot IP address to `.env`:
 
 ```bash
 python3 -m pip install xarm-python-sdk
-printf 'XARM_IP=192.168.1.XXX\n' >> .env
 ```
 
 Read the current TCP pose and joint angles without moving the robot:
@@ -131,6 +130,34 @@ python3 -m arm.xarm_controller \
 Use the current TCP pose from `get_tcp_pose()` as the xArm-side
 end-effector pose for hand-eye calibration, together with the camera/ArUco
 transform and the INSPIRE hand setup.
+
+Continuously write the current xArm TCP pose as `T_base_ee` for calibration:
+
+```bash
+python3 -m arm.base_ee_tracker \
+  --output calibration/base_ee.yaml
+```
+
+This tracker uses `arm.xarm_controller`, so it reads `XARM_IP` from `.env`,
+connects to the xArm, calls `get_tcp_pose()`, and writes:
+
+- `translation_m`, converted from xArm millimeters to meters
+- `rotation_quaternion_xyzw`, converted from xArm roll/pitch/yaw degrees
+- `T_base_ee`, the 4x4 base-to-end-effector transform
+- `xarm_tcp_pose_mm_deg`, the raw `[x, y, z, roll, pitch, yaw]` reading
+
+Use `--once` to write one sample and exit:
+
+```bash
+python3 -m arm.base_ee_tracker \
+  --output calibration/base_ee.yaml \
+  --once
+```
+
+Keep `calibration/base_ee.yaml` separate from `calibration/transforms.yaml`.
+`base_ee.yaml` is the current xArm base-to-end-effector pose and may change
+every time the arm moves. `transforms.yaml` is a calibration snapshot that
+stores the camera/marker/robot transforms used for a hand-eye observation.
 
 ## ZED Physical-Property Estimator
 
@@ -263,6 +290,10 @@ The saved file stores:
 
 - `T_cam_marker`, the marker pose in the camera frame
 - `T_marker_cam`, the inverse transform
+
+Do not use `calibration/transforms.yaml` as the live arm-pose file. Keep the
+current xArm pose in `calibration/base_ee.yaml`, then pass it into the ArUco
+pose command with `--base-ee-transform`.
 
 For hand-eye calibration, provide the known end-effector-to-marker transform
 and a measured robot base-to-end-effector transform:

@@ -8,6 +8,10 @@ import types
 import unittest
 from pathlib import Path
 
+import numpy as np
+import yaml
+
+from arm.base_ee_tracker import main as tracker_main
 from arm.xarm_controller import (
     XArmCommandError,
     XArmController,
@@ -155,6 +159,27 @@ class XArmControllerTests(unittest.TestCase):
         fake = FakeXArmAPI.instances[-1]
         self.assertNotIn("set_position", [name for name, _args in fake.calls])
         self.assertNotIn("set_servo_angle", [name for name, _args in fake.calls])
+
+    def test_base_ee_tracker_reads_xarm_tcp_pose(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "base_ee.yaml"
+            with contextlib.redirect_stdout(io.StringIO()):
+                result = tracker_main(
+                    [
+                        "--source",
+                        "xarm",
+                        "--ip",
+                        "192.168.1.222",
+                        "--output",
+                        str(output),
+                        "--once",
+                    ]
+                )
+            saved = yaml.safe_load(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(result, 0)
+        np.testing.assert_allclose(np.asarray(saved["T_base_ee"])[:3, 3], [0.001, 0.002, 0.003])
+        self.assertEqual(saved["xarm_tcp_pose_mm_deg"], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
 
 
 if __name__ == "__main__":

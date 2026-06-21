@@ -19,4 +19,4 @@ aruco-marker = "camera.aruco_generator:main"
 zed-pointcloud = "camera.zed_pointcloud:main"
 
 [tool.setuptools.packages.find]
-include = ["property_estimation*", "hand*", "camera*"]
+include = ["property_estimation*", "hand*", "camera*", "arm*"]
