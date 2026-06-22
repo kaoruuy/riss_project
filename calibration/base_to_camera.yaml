@@ -1,7 +1,5 @@
 # Transform from robot base frame to ZED camera frame.
-# This is intentionally left uncalibrated because the ZED SDK settings file
-# contains camera intrinsics/stereo extrinsics, not the robot-base-to-camera
-# transform.
+# Calculated from a hand-eye marker observation snapshot.
 frames:
   parent: base
   child: zed_left_camera_optical_frame
@@ -12,25 +10,27 @@ camera:
   intrinsics_file: calibration/zed_intrinsics.yaml
   calibration_source: /usr/local/zed/settings/SN14778242.conf
 
-calibrated: false
+calibrated: true
 translation_m:
-  x: null
-  y: null
-  z: null
+  x: 0.29041168535043144
+  y: 0.04210654327827275
+  z: 0.1912891963222106
 rotation_quaternion_xyzw:
-  x: null
-  y: null
-  z: null
-  w: null
+  x: 0.4755408110224944
+  y: 0.5088638892537922
+  z: -0.49740720273094
+  w: 0.5172084240777157
 
 transform_matrix:
-  - [null, null, null, null]
-  - [null, null, null, null]
-  - [null, null, null, null]
+  - [-0.012712766230228335, 0.9984974840903668, 0.05330253127181957, 0.29041168535043144]
+  - [-0.030555297707130214, 0.052894023446900064, -0.9981325543561974, 0.04210654327827275]
+  - [-0.9994522296522246, -0.014317700541865085, 0.029836958531145007, 0.1912891963222106]
   - [0.0, 0.0, 0.0, 1.0]
 
 notes:
   - Current camera intrinsics are for ZED Mini serial 14778242.
   - ZED stereo baseline is available in calibration/zed_intrinsics.yaml, but it is not a robot-base transform.
-  - Fill this file from a hand-eye or marker-based base-to-camera calibration.
+  - Calculated from calibration/transforms.yaml as T_base_cam = T_base_ee @ T_ee_marker @ T_marker_cam.
+  - T_base_ee was copied from calibration/base_ee.yaml at timestamp 1782070851.007742 because base_ee.yaml updates continuously.
+  - ArUco marker length used for this snapshot is 0.045 m.
   - Keep units in meters and use the left camera optical frame unless another frame is documented here.
