@@ -325,6 +325,76 @@ When both inputs are present, the saved file also includes:
 T_base_cam = T_base_ee @ T_ee_marker @ T_marker_cam
 ```
 
+For a stronger hand-eye calibration, collect multiple synchronized samples and
+fit all of them together:
+
+```bash
+python3 -m camera.capture_aruco_sample
+```
+
+Each run captures a fresh ZED left image and freezes the current xArm pose with
+the same monotonically increasing index:
+
+```text
+calibration/samples/pose_001.png
+calibration/samples/pose_001_marker.yaml
+calibration/samples/pose_001_base_ee.yaml
+```
+
+The marker YAML contains `T_cam_marker`; the base-EE YAML contains the matching
+`T_base_ee`. This prevents accidentally reusing an old image with a new arm
+pose.
+
+After collecting several poses, build the dataset consumed by the fitter:
+
+```bash
+python3 -m camera.build_hand_eye_dataset \
+  --input-dir calibration/samples \
+  --output calibration/hand_eye_samples.yaml
+```
+
+```bash
+python3 -m camera.fit_hand_eye \
+  --samples calibration/hand_eye_samples.yaml \
+  --base-to-camera-output calibration/base_to_camera.yaml \
+  --ee-marker-output calibration/ee_marker_estimated.yaml \
+  --pretty
+```
+
+The sample file must contain at least three paired observations. Each
+`T_base_ee` must be a frozen xArm pose snapshot captured at the same time as
+the corresponding image-derived `T_cam_marker`:
+
+```yaml
+samples:
+  - T_base_ee:
+      - [1.0, 0.0, 0.0, 0.30]
+      - [0.0, 1.0, 0.0, 0.00]
+      - [0.0, 0.0, 1.0, 0.20]
+      - [0.0, 0.0, 0.0, 1.0]
+    T_cam_marker:
+      - [1.0, 0.0, 0.0, 0.02]
+      - [0.0, 1.0, 0.0, 0.00]
+      - [0.0, 0.0, 1.0, 0.45]
+      - [0.0, 0.0, 0.0, 1.0]
+```
+
+The fitter uses OpenCV `calibrateRobotWorldHandEye`, treating the ArUco marker
+as the world/calibration target. It estimates both `T_base_cam` and
+`T_ee_marker`, then saves the final transforms to the output YAML files.
+
+Inspect per-sample residuals to find bad captures before refitting:
+
+```bash
+python3 -m camera.diagnose_hand_eye \
+  --samples calibration/hand_eye_samples.yaml \
+  --top 12
+```
+
+The diagnostic refits the dataset, uses the selected transform convention, and
+sorts samples by translation error while also showing rotation error. Remove or
+recapture high-error pose pairs, rebuild `hand_eye_samples.yaml`, and refit.
+
 ## Tests
 
 The tests do not require a camera or API key. Run them from the repository root:

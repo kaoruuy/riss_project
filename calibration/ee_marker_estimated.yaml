@@ -1,11 +1,6 @@
 frames:
-  parent: base
-  child: zed_left_camera_optical_frame
-camera:
-  model: ZED Mini
-  serial_number: 14778242
-  intrinsics_file: calibration/zed_intrinsics.yaml
-  calibration_source: /usr/local/zed/settings/SN14778242.conf
+  parent: xarm_tcp
+  child: aruco_marker
 calibrated: true
 method: cv2.calibrateRobotWorldHandEye:shah
 selected_convention: &id001
@@ -14,29 +9,29 @@ selected_convention: &id001
   T_base_cam_from: inverse_opencv_X
   T_ee_marker_from: inverse_opencv_Z
 sample_count: 30
-timestamp: 1782162358.1214383
+timestamp: 1782162358.123719
 translation_m:
-  x: 0.5115887884650673
-  y: 0.040991576562544735
-  z: -0.0426954984716989
+  x: -0.4727599445435918
+  y: 0.13383819403051234
+  z: 0.26206203450804955
 rotation_quaternion_xyzw:
-  x: 0.5809988409541288
-  y: -0.46693923299799345
-  z: -0.40192171478330174
-  w: 0.5318524557458157
-transform_matrix:
-- - 0.24085337574579177
-  - -0.11505620428555148
-  - -0.9637176563948894
-  - 0.5115887884650673
-- - -0.970108408385825
-  - 0.0017985639912184333
-  - -0.24266528624154557
-  - 0.040991576562544735
-- - 0.0296534546213124
-  - 0.9933573551461584
-  - -0.1111838010055909
-  - -0.0426954984716989
+  x: 0.48266392001265407
+  y: 0.35258114935009194
+  z: 0.5420406009662617
+  w: 0.5906894787831592
+T_ee_marker:
+- - 0.16375704005420463
+  - -0.29999896079237875
+  - 0.9397788332135268
+  - -0.4727599445435918
+- - 0.9807117594639079
+  - -0.053544945555696055
+  - -0.18798240251322462
+  - 0.13383819403051234
+- - 0.1067149318600344
+  - 0.9524355948456202
+  - 0.2854441468819734
+  - 0.26206203450804955
 - - 0.0
   - 0.0
   - 0.0
@@ -91,6 +86,4 @@ notes:
 - Estimated from multiple paired T_base_ee and T_cam_marker samples.
 - All combinations of inverting T_base_ee and T_cam_marker were tested; this file
   stores only the lowest-residual result.
-- T_base_ee samples are frozen snapshots; do not use a live-updating base_ee.yaml
-  during fitting.
-- Units are meters for translations.
+- Use this file as --ee-marker-transform for ArUco pose workflows when appropriate.
