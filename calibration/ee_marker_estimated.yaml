@@ -9,79 +9,79 @@ selected_convention: &id001
   T_base_cam_from: inverse_opencv_Z
   T_ee_marker_from: inverse_opencv_X
 sample_count: 10
-timestamp: 1782166121.2416842
+timestamp: 1782236396.4852328
 translation_m:
-  x: 0.03429217781846002
-  y: -0.005763071051078928
-  z: 0.12003822726074127
+  x: 0.03127202053533851
+  y: -0.006252809114560228
+  z: 0.12405606801958108
 rotation_quaternion_xyzw:
-  x: -0.5099974122574858
-  y: 0.4944177764985923
-  z: -0.48932687520113
-  w: 0.5059771842472285
+  x: -0.510254206145802
+  y: 0.4774300013282551
+  z: -0.5031266248239545
+  w: 0.5084927121753818
 T_ee_marker:
-- - 0.03222054297617148
-  - -0.009127104195238933
-  - 0.9994391089903026
-  - 0.03429217781846002
-- - -0.9994800421582898
-  - 0.0009236973931315839
-  - 0.03223029801893748
-  - -0.005763071051078928
-- - -0.0012173485878305586
-  - -0.9999579204907253
-  - -0.009092596454288004
-  - 0.12003822726074127
+- - 0.03784838644991638
+  - 0.0244511114128812
+  - 0.9989843055793284
+  - 0.03127202053533851
+- - -0.9988937766846326
+  - -0.026991510992453602
+  - 0.03850560004798824
+  - -0.006252809114560228
+- - 0.027905600582126145
+  - -0.9993365806799127
+  - 0.023402477884439943
+  - 0.12405606801958108
 - - 0.0
   - 0.0
   - 0.0
   - 1.0
 residuals:
   translation_m:
-    mean: 0.004807994171710726
-    max: 0.00998390952982104
-    rms: 0.005501148643592877
+    mean: 0.007630997399837747
+    max: 0.016728627127368532
+    rms: 0.008552313459370953
   rotation_deg:
-    mean: 1.036247967395112
-    max: 2.3259224672242467
-    rms: 1.1796107707700934
+    mean: 3.1307232026876486
+    max: 7.3666163061489565
+    rms: 3.882453345315353
 tested_conventions:
 - convention: *id001
-  residual_score: 0.01729725635129381
-  translation_rms_m: 0.005501148643592877
-  translation_max_m: 0.00998390952982104
-  rotation_rms_deg: 1.1796107707700934
-  rotation_max_deg: 2.3259224672242467
+  residual_score: 0.04737684691252449
+  translation_rms_m: 0.008552313459370953
+  translation_max_m: 0.016728627127368532
+  rotation_rms_deg: 3.882453345315353
+  rotation_max_deg: 7.3666163061489565
 - convention:
     T_cam_marker_input: inverted
     T_base_ee_input: inverted
     T_base_cam_from: inverse_opencv_X
     T_ee_marker_from: inverse_opencv_Z
-  residual_score: 0.018865503634464396
-  translation_rms_m: 0.0070693959267492485
-  translation_max_m: 0.00993368941851347
-  rotation_rms_deg: 1.1796107707715147
-  rotation_max_deg: 2.3259224672248737
+  residual_score: 0.05892813225766647
+  translation_rms_m: 0.020103598804510306
+  translation_max_m: 0.03158491876305127
+  rotation_rms_deg: 3.8824533453156165
+  rotation_max_deg: 7.366616306149057
 - convention:
     T_cam_marker_input: inverted
     T_base_ee_input: as_given
     T_base_cam_from: inverse_opencv_Z
     T_ee_marker_from: inverse_opencv_X
-  residual_score: 0.8349419681287145
-  translation_rms_m: 0.17215105710290818
-  translation_max_m: 0.23249587027294819
-  rotation_rms_deg: 66.27909110258064
-  rotation_max_deg: 79.54883675265415
+  residual_score: 0.7744473631168732
+  translation_rms_m: 0.14960292855607815
+  translation_max_m: 0.19042746803542285
+  rotation_rms_deg: 62.484443456079504
+  rotation_max_deg: 68.25113260610262
 - convention:
     T_cam_marker_input: as_given
     T_base_ee_input: inverted
-    T_base_cam_from: opencv_X
+    T_base_cam_from: inverse_opencv_X
     T_ee_marker_from: inverse_opencv_Z
-  residual_score: 0.8388889029459212
-  translation_rms_m: 0.19963100678756326
-  translation_max_m: 0.345524427799625
-  rotation_rms_deg: 63.9257896158358
-  rotation_max_deg: 75.58246837868096
+  residual_score: 0.7768240248810646
+  translation_rms_m: 0.15197959032026964
+  translation_max_m: 0.20884334790885267
+  rotation_rms_deg: 62.4844434560795
+  rotation_max_deg: 68.25113260610259
 notes:
 - Estimated from multiple paired T_base_ee and T_cam_marker samples.
 - All combinations of inverting T_base_ee and T_cam_marker were tested; this file
