@@ -154,10 +154,10 @@ python3 -m arm.base_ee_tracker \
   --once
 ```
 
-Keep `calibration/base_ee.yaml` separate from `calibration/transforms.yaml`.
+Keep `calibration/base_ee.yaml` separate from the fitted calibration outputs.
 `base_ee.yaml` is the current xArm base-to-end-effector pose and may change
-every time the arm moves. `transforms.yaml` is a calibration snapshot that
-stores the camera/marker/robot transforms used for a hand-eye observation.
+every time the arm moves. The fitted, stable calibration outputs are
+`calibration/base_to_camera.yaml` and `calibration/ee_marker_estimated.yaml`.
 
 ## ZED Physical-Property Estimator
 
@@ -276,54 +276,11 @@ python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
 The output includes both `marker_to_camera_matrix` from OpenCV PnP and the
 inverted `camera_to_marker_matrix`.
 
-Save the calculated transforms to a calibration YAML file:
-
-```bash
-python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
-  --dictionary DICT_4X4_50 \
-  --marker-length-m 0.05 \
-  --save-transforms calibration/transforms.yaml \
-  --pretty
-```
-
-The saved file stores:
-
-- `T_cam_marker`, the marker pose in the camera frame
-- `T_marker_cam`, the inverse transform
-
-Do not use `calibration/transforms.yaml` as the live arm-pose file. Keep the
-current xArm pose in `calibration/base_ee.yaml`, then pass it into the ArUco
-pose command with `--base-ee-transform`.
-
-For hand-eye calibration, provide the known end-effector-to-marker transform
-and a measured robot base-to-end-effector transform:
-
-```bash
-python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
-  --dictionary DICT_4X4_50 \
-  --marker-length-m 0.05 \
-  --ee-marker-transform calibration/ee_marker.yaml \
-  --base-ee-transform calibration/base_ee.yaml \
-  --save-transforms calibration/transforms.yaml \
-  --pretty
-```
-
-Each input transform file can be a YAML or JSON 4x4 matrix, either directly or
-under a matching key:
-
-```yaml
-T_ee_marker:
-  - [1.0, 0.0, 0.0, 0.0]
-  - [0.0, 1.0, 0.0, 0.0]
-  - [0.0, 0.0, 1.0, 0.0]
-  - [0.0, 0.0, 0.0, 1.0]
-```
-
-When both inputs are present, the saved file also includes:
-
-```text
-T_base_cam = T_base_ee @ T_ee_marker @ T_marker_cam
-```
+`calibration/transforms.yaml` is not a canonical calibration file anymore.
+Single-observation transform bundles can become stale and conflict with the
+multi-sample hand-eye result. Keep the final robot-to-camera calibration in
+`calibration/base_to_camera.yaml`, and keep the estimated marker mount in
+`calibration/ee_marker_estimated.yaml`.
 
 For a stronger hand-eye calibration, collect multiple synchronized samples and
 fit all of them together:
