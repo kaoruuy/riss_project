@@ -23,6 +23,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT_DIR)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument(
+        "--marker-id",
+        type=int,
+        default=0,
+        help="required ArUco marker id for hand-eye samples; defaults to hand marker 0",
+    )
+    parser.add_argument(
         "--allow-empty",
         action="store_true",
         help="write an empty dataset instead of failing when no pairs are found",
@@ -33,7 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        samples = build_dataset(args.input_dir)
+        samples = build_dataset(args.input_dir, marker_id=args.marker_id)
         if not samples and not args.allow_empty:
             raise ValueError(f"no paired samples found in {args.input_dir}")
         write_dataset(args.output, samples, args.input_dir)
@@ -44,16 +50,22 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
 
-def build_dataset(input_dir: Path) -> list[dict[str, Any]]:
+def build_dataset(input_dir: Path, marker_id: int | None = 0) -> list[dict[str, Any]]:
     pairs = find_sample_pairs(input_dir)
     samples = []
     for stem, files in pairs:
         base_ee = load_yaml(files["base_ee"])
         marker = load_yaml(files["marker"])
+        detected_marker_id = marker.get("marker_id")
+        if marker_id is not None and detected_marker_id != marker_id:
+            raise ValueError(
+                f"{files['marker']} marker_id is {detected_marker_id}; expected hand marker {marker_id}"
+            )
         samples.append(
             {
                 "id": stem,
                 "image": marker.get("image"),
+                "marker_id": detected_marker_id,
                 "base_ee_file": str(files["base_ee"]),
                 "marker_file": str(files["marker"]),
                 "T_base_ee": as_transform_matrix(base_ee.get("T_base_ee"), f"{files['base_ee']} T_base_ee").tolist(),

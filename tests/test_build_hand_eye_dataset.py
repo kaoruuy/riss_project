@@ -36,7 +36,9 @@ class BuildHandEyeDatasetTests(unittest.TestCase):
                 encoding="utf-8",
             )
             (root / "pose_001_marker.yaml").write_text(
-                yaml.safe_dump({"image": "pose_001.png", "T_cam_marker": transform(0.2)}),
+                yaml.safe_dump(
+                    {"image": "pose_001.png", "marker_id": 0, "T_cam_marker": transform(0.2)}
+                ),
                 encoding="utf-8",
             )
 
@@ -45,8 +47,24 @@ class BuildHandEyeDatasetTests(unittest.TestCase):
         self.assertEqual(len(samples), 1)
         self.assertEqual(samples[0]["id"], "pose_001")
         self.assertEqual(samples[0]["image"], "pose_001.png")
+        self.assertEqual(samples[0]["marker_id"], 0)
         np.testing.assert_allclose(samples[0]["T_base_ee"], transform(0.1))
         np.testing.assert_allclose(samples[0]["T_cam_marker"], transform(0.2))
+
+    def test_build_dataset_rejects_non_hand_marker_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "pose_001_base_ee.yaml").write_text(
+                yaml.safe_dump({"T_base_ee": transform(0.1)}),
+                encoding="utf-8",
+            )
+            (root / "pose_001_marker.yaml").write_text(
+                yaml.safe_dump({"marker_id": 2, "T_cam_marker": transform(0.2)}),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "expected hand marker 0"):
+                build_dataset(root)
 
     def test_cli_writes_hand_eye_samples(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -57,7 +75,7 @@ class BuildHandEyeDatasetTests(unittest.TestCase):
                 encoding="utf-8",
             )
             (root / "pose_001_marker.yaml").write_text(
-                yaml.safe_dump({"T_cam_marker": transform(0.2)}),
+                yaml.safe_dump({"marker_id": 0, "T_cam_marker": transform(0.2)}),
                 encoding="utf-8",
             )
 

@@ -35,7 +35,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--dictionary", help="override ArUco dictionary from config")
     parser.add_argument("--marker-length-m", type=float, help="override marker length from config")
-    parser.add_argument("--marker-id", type=int, help="specific marker id to use if multiple are visible")
+    parser.add_argument(
+        "--marker-id",
+        type=int,
+        default=0,
+        help="specific marker id to use for hand-eye calibration; defaults to hand marker 0",
+    )
     parser.add_argument("--ignore-distortion", action="store_true")
     parser.add_argument("--resolution", default="HD720")
     parser.add_argument("--fps", type=int, default=30)

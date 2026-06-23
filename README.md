@@ -238,9 +238,8 @@ Calibration files live in `calibration/`:
 - `zed_intrinsics.yaml` stores the current ZED Mini intrinsics for serial
   `14778242`, copied from `/usr/local/zed/settings/SN14778242.conf`.
 - `aruco_config.yaml` stores the default ArUco/PnP camera parameters.
-- `base_to_camera.yaml` is reserved for a robot-base-to-camera transform. It is
-  still marked `calibrated: false` because the ZED SDK settings do not contain
-  that robot extrinsic.
+- `base_to_camera.yaml` stores the fitted robot-base-to-camera transform after
+  multi-sample hand-eye calibration.
 
 Generate a printable ArUco marker:
 
@@ -289,6 +288,10 @@ fit all of them together:
 python3 -m camera.capture_aruco_sample
 ```
 
+By default this command only accepts ArUco marker ID `0`, which should be the
+marker mounted on the hand/end-effector. Use table markers with IDs `1`-`4`
+only for recovery references, not for the hand-eye calibration dataset.
+
 Each run captures a fresh ZED left image and freezes the current xArm pose with
 the same monotonically increasing index:
 
@@ -309,6 +312,9 @@ python3 -m camera.build_hand_eye_dataset \
   --input-dir calibration/samples \
   --output calibration/hand_eye_samples.yaml
 ```
+
+The dataset builder also defaults to `--marker-id 0` and rejects captured
+samples from any other marker ID.
 
 ```bash
 python3 -m camera.fit_hand_eye \
@@ -351,6 +357,49 @@ python3 -m camera.diagnose_hand_eye \
 The diagnostic refits the dataset, uses the selected transform convention, and
 sorts samples by translation error while also showing rotation error. Remove or
 recapture high-error pose pairs, rebuild `hand_eye_samples.yaml`, and refit.
+
+### Camera Recovery From Table Markers
+
+After hand-eye calibration succeeds and while the camera is still in the
+calibrated pose, uncover the fixed table markers. Use marker ID `0` only on the
+hand, and table marker IDs `1`, `2`, `3`, and `4` on the table.
+
+Capture one table-marker reference image and save the fixed marker poses in the
+robot base frame:
+
+```bash
+python3 -m camera.capture_table_references \
+  --base-to-camera calibration/base_to_camera.yaml \
+  --output calibration/table_marker_references.yaml
+```
+
+This detects IDs `1`-`4`, computes `T_base_table_1` through
+`T_base_table_4` as:
+
+```text
+T_base_table_i = T_base_cam @ T_cam_table_i
+```
+
+and stores them in `calibration/table_marker_references.yaml`.
+
+If the camera moves later, recover a fresh `T_base_cam` without redoing
+hand-eye calibration:
+
+```bash
+python3 -m camera.recover_base_to_camera \
+  --references calibration/table_marker_references.yaml \
+  --output calibration/base_to_camera_recovered.yaml
+```
+
+The recovery script detects the visible table markers and computes each camera
+estimate as:
+
+```text
+T_base_cam_i = T_base_table_i @ inverse(T_cam_table_i)
+```
+
+When more than one referenced marker is visible, it averages the estimates and
+reports per-marker residuals in the output YAML.
 
 ## Tests
 
