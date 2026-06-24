@@ -275,6 +275,23 @@ python3 -m camera.aruco_pose aruco_markers/aruco_0.png \
 The output includes both `marker_to_camera_matrix` from OpenCV PnP and the
 inverted `camera_to_marker_matrix`.
 
+View the marker XYZ frame live from the ZED camera:
+
+```bash
+python3 -m camera.aruco_live_viewer \
+  --dictionary DICT_4X4_50 \
+  --marker-id 0 \
+  --marker-length-m 0.05 \
+  --axis-length-m 0.03 \
+  --ignore-distortion
+```
+
+The live viewer draws detected marker corners, marker ID text, and XYZ axes
+using OpenCV `drawFrameAxes`. Press `q` or `Esc` to quit. Use
+`--source webcam --camera-index 0` to view a standard webcam instead of the
+ZED stream. It prints `T_cam_marker` periodically so the terminal remains
+readable while the video window updates in real time.
+
 `calibration/transforms.yaml` is not a canonical calibration file anymore.
 Single-observation transform bundles can become stale and conflict with the
 multi-sample hand-eye result. Keep the final robot-to-camera calibration in
