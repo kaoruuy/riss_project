@@ -44,11 +44,13 @@ class CaptureArucoSampleTests(unittest.TestCase):
             ignore_distortion=False,
             camera_frame="zed_left_camera_optical_frame",
             sample_index=7,
+            zed_settings={"resolution": "HD720", "depth_mode": "NEURAL"},
         )
 
         self.assertEqual(document["sample_index"], 7)
         self.assertEqual(document["marker_id"], 0)
         self.assertEqual(document["marker_length_m"], 0.045)
+        self.assertEqual(document["zed_settings"]["depth_mode"], "NEURAL")
         self.assertIn("T_cam_marker", document)
         self.assertIn("T_marker_cam", document)
         self.assertEqual(len(document["T_cam_marker"]), 4)

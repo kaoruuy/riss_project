@@ -16,6 +16,19 @@ def transform(tx: float = 0.0) -> list[list[float]]:
     return matrix.tolist()
 
 
+def zed_settings(depth_mode: str = "NEURAL") -> dict[str, object]:
+    return {
+        "resolution": "HD720",
+        "fps": 30,
+        "depth_mode": depth_mode,
+        "coordinate_units": "METER",
+        "coordinate_system": "IMAGE",
+        "left_view": "LEFT",
+        "left_image_rectification": "rectified",
+        "intrinsics_file": "calibration/zed_intrinsics.yaml",
+    }
+
+
 class BuildHandEyeDatasetTests(unittest.TestCase):
     def test_find_sample_pairs_matches_shared_stems(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -32,12 +45,17 @@ class BuildHandEyeDatasetTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / "pose_001_base_ee.yaml").write_text(
-                yaml.safe_dump({"T_base_ee": transform(0.1)}),
+                yaml.safe_dump({"T_base_ee": transform(0.1), "zed_settings": zed_settings()}),
                 encoding="utf-8",
             )
             (root / "pose_001_marker.yaml").write_text(
                 yaml.safe_dump(
-                    {"image": "pose_001.png", "marker_id": 0, "T_cam_marker": transform(0.2)}
+                    {
+                        "image": "pose_001.png",
+                        "marker_id": 0,
+                        "zed_settings": zed_settings(),
+                        "T_cam_marker": transform(0.2),
+                    }
                 ),
                 encoding="utf-8",
             )
@@ -48,6 +66,7 @@ class BuildHandEyeDatasetTests(unittest.TestCase):
         self.assertEqual(samples[0]["id"], "pose_001")
         self.assertEqual(samples[0]["image"], "pose_001.png")
         self.assertEqual(samples[0]["marker_id"], 0)
+        self.assertEqual(samples[0]["zed_settings"]["depth_mode"], "NEURAL")
         np.testing.assert_allclose(samples[0]["T_base_ee"], transform(0.1))
         np.testing.assert_allclose(samples[0]["T_cam_marker"], transform(0.2))
 
@@ -64,6 +83,27 @@ class BuildHandEyeDatasetTests(unittest.TestCase):
             )
 
             with self.assertRaisesRegex(ValueError, "expected hand marker 0"):
+                build_dataset(root)
+
+    def test_build_dataset_rejects_zed_settings_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "pose_001_base_ee.yaml").write_text(
+                yaml.safe_dump({"T_base_ee": transform(0.1), "zed_settings": zed_settings()}),
+                encoding="utf-8",
+            )
+            (root / "pose_001_marker.yaml").write_text(
+                yaml.safe_dump(
+                    {
+                        "marker_id": 0,
+                        "T_cam_marker": transform(0.2),
+                        "zed_settings": zed_settings("QUALITY"),
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "different zed_settings"):
                 build_dataset(root)
 
     def test_cli_writes_hand_eye_samples(self) -> None:
@@ -85,6 +125,7 @@ class BuildHandEyeDatasetTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertEqual(document["sample_count"], 1)
         self.assertEqual(document["samples"][0]["id"], "pose_001")
+        self.assertIsNone(document["zed_settings"])
 
 
 if __name__ == "__main__":

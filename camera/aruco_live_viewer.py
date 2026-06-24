@@ -19,6 +19,14 @@ from camera.aruco_pose import (
     marker_object_points,
     required_value,
 )
+from camera.zed_config import (
+    ZedRuntimeConfig,
+    add_zed_runtime_args,
+    camera_parameters_from_config,
+    config_from_args,
+    left_view_value,
+    open_zed_camera,
+)
 
 
 DEFAULT_WINDOW_NAME = "ArUco Live Viewer"
@@ -46,10 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="use zero distortion coefficients, useful for rectified ZED SDK images",
     )
-    parser.add_argument("--resolution", default="HD720")
-    parser.add_argument("--eye", choices=("left", "right"), default="left")
-    parser.add_argument("--fps", type=int, default=30)
-    parser.add_argument("--open-timeout", type=float, default=30.0)
+    add_zed_runtime_args(parser)
     parser.add_argument("--print-interval-s", type=float, default=2.0)
     parser.add_argument("--window-name", default=DEFAULT_WINDOW_NAME)
     return parser
@@ -72,14 +77,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.axis_length_m <= 0:
             raise ValueError("axis-length-m must be greater than zero")
 
-        camera = live_camera_parameters(
+        zed_config = config_from_args(args)
+        camera = camera_parameters_from_config(
             config,
-            resolution=args.resolution,
-            eye=args.eye,
+            resolution=zed_config.resolution,
+            eye=zed_config.eye,
             ignore_distortion=args.ignore_distortion,
         )
         detector = create_detector(cv2, dictionary_name)
-        source = open_frame_source(args)
+        source = open_frame_source(args, zed_config)
         run_viewer(
             cv2=cv2,
             source=source,
@@ -239,60 +245,6 @@ def create_detector(cv2: Any, dictionary_name: str) -> Any:
     return dictionary, parameters
 
 
-def live_camera_parameters(
-    config: dict[str, Any],
-    *,
-    resolution: str,
-    eye: str,
-    ignore_distortion: bool,
-) -> dict[str, np.ndarray]:
-    camera = config.get("camera")
-    if isinstance(camera, dict) and all(key in camera for key in ("fx", "fy", "cx", "cy")):
-        return camera_parameters_from_mapping(camera, ignore_distortion=ignore_distortion)
-
-    resolutions = config.get("resolutions")
-    if isinstance(resolutions, dict):
-        resolution_data = resolutions.get(resolution)
-        if not isinstance(resolution_data, dict):
-            raise ValueError(f"config does not contain resolution {resolution}")
-        eye_data = resolution_data.get(eye)
-        if not isinstance(eye_data, dict):
-            raise ValueError(f"config does not contain {resolution}.{eye} intrinsics")
-        return camera_parameters_from_mapping(eye_data, ignore_distortion=ignore_distortion)
-
-    raise ValueError("config must be aruco_config.yaml or zed_intrinsics.yaml format")
-
-
-def camera_parameters_from_mapping(
-    camera: dict[str, Any],
-    *,
-    ignore_distortion: bool,
-) -> dict[str, np.ndarray]:
-    fx = float(required_value(camera.get("fx"), "camera.fx"))
-    fy = float(required_value(camera.get("fy"), "camera.fy"))
-    cx = float(required_value(camera.get("cx"), "camera.cx"))
-    cy = float(required_value(camera.get("cy"), "camera.cy"))
-    camera_matrix = np.asarray(
-        camera.get(
-            "camera_matrix",
-            [
-                [fx, 0.0, cx],
-                [0.0, fy, cy],
-                [0.0, 0.0, 1.0],
-            ],
-        ),
-        dtype=np.float64,
-    ).reshape(3, 3)
-    if ignore_distortion:
-        distortion = np.zeros((4, 1), dtype=np.float64)
-    else:
-        distortion = np.asarray(
-            required_value(camera.get("distortion_vector"), "camera.distortion_vector"),
-            dtype=np.float64,
-        ).reshape(-1, 1)
-    return {"camera_matrix": camera_matrix, "distortion": distortion}
-
-
 def load_config(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as file:
         data = yaml.safe_load(file)
@@ -301,10 +253,10 @@ def load_config(path: Path) -> dict[str, Any]:
     return data
 
 
-def open_frame_source(args: argparse.Namespace) -> FrameSource:
+def open_frame_source(args: argparse.Namespace, zed_config: ZedRuntimeConfig) -> FrameSource:
     if args.source == "webcam":
         return WebcamFrameSource(args.camera_index)
-    return ZedFrameSource(args.resolution, args.fps, args.open_timeout)
+    return ZedFrameSource(zed_config)
 
 
 class WebcamFrameSource:
@@ -325,35 +277,16 @@ class WebcamFrameSource:
 
 
 class ZedFrameSource:
-    def __init__(self, resolution: str, fps: int, open_timeout: float) -> None:
-        try:
-            import pyzed.sl as sl
-        except ImportError as exc:
-            raise ImportError("pyzed is required for --source zed") from exc
-
-        resolution_value = getattr(sl.RESOLUTION, resolution, None)
-        if resolution_value is None:
-            raise ValueError(f"Unsupported ZED resolution: {resolution}")
-
-        self.sl = sl
-        self.zed = sl.Camera()
-        params = sl.InitParameters()
-        params.camera_resolution = resolution_value
-        params.camera_fps = fps
-        params.depth_mode = sl.DEPTH_MODE.NONE
-        params.open_timeout_sec = open_timeout
-
-        result = self.zed.open(params)
-        if result != sl.ERROR_CODE.SUCCESS:
-            self.zed.close()
-            raise RuntimeError(f"Could not open ZED camera: {result}")
-        self.image = sl.Mat()
+    def __init__(self, zed_config: ZedRuntimeConfig) -> None:
+        self.zed_config = zed_config
+        self.zed, self.sl = open_zed_camera(zed_config)
+        self.image = self.sl.Mat()
 
     def read(self) -> np.ndarray | None:
         result = self.zed.grab()
         if result != self.sl.ERROR_CODE.SUCCESS:
             return None
-        result = self.zed.retrieve_image(self.image, self.sl.VIEW.LEFT)
+        result = self.zed.retrieve_image(self.image, left_view_value(self.sl, self.zed_config))
         if result != self.sl.ERROR_CODE.SUCCESS:
             return None
         frame = np.asarray(self.image.get_data())

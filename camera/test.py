@@ -11,7 +11,7 @@ import sys
 
 import pyzed.sl as sl
 
-CAMERA_OPEN_TIMEOUT = 30.0
+from camera.zed_config import ZedRuntimeConfig, left_view_value, make_init_parameters
 
 
 def command_result(command: list[str]) -> tuple[int | None, str]:
@@ -96,17 +96,14 @@ def main() -> int:
         )
         return 2
 
+    zed_config = ZedRuntimeConfig()
     zed = sl.Camera()
-    init_params = sl.InitParameters()
-    init_params.camera_resolution = sl.RESOLUTION.HD720
-    init_params.camera_fps = 30
-    init_params.depth_mode = sl.DEPTH_MODE.NONE
+    init_params = make_init_parameters(sl, zed_config)
     init_params.sdk_verbose = 1
-    init_params.open_timeout_sec = CAMERA_OPEN_TIMEOUT
 
     print(
-        f"\nOpening camera at HD720/30 with depth disabled "
-        f"(allowing the SDK up to {CAMERA_OPEN_TIMEOUT:g} seconds)..."
+        f"\nOpening camera with shared ZED settings {zed_config.metadata()} "
+        f"(allowing the SDK up to {zed_config.open_timeout:g} seconds)..."
     )
     error = zed.open(init_params)
     print(f"Open result: {error}")
@@ -121,7 +118,7 @@ def main() -> int:
         if error != sl.ERROR_CODE.SUCCESS:
             return 4
 
-        zed.retrieve_image(image, sl.VIEW.LEFT)
+        zed.retrieve_image(image, left_view_value(sl, zed_config))
         print(f"Image received: {image.get_width()}x{image.get_height()}")
         return 0
     finally:

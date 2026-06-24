@@ -19,6 +19,7 @@ from camera.table_marker_recovery import (
     recovered_base_to_camera_document,
     write_yaml,
 )
+from camera.zed_config import add_zed_runtime_args, config_from_args
 
 
 DEFAULT_RECOVERY_IMAGE = Path("calibration/table_marker_recovery.png")
@@ -40,9 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--marker-length-m", type=float, help="override marker length from config")
     parser.add_argument("--ignore-distortion", action="store_true")
     parser.add_argument("--min-markers", type=int, default=1)
-    parser.add_argument("--resolution", default="HD720")
-    parser.add_argument("--fps", type=int, default=30)
-    parser.add_argument("--open-timeout", type=float, default=30.0)
+    add_zed_runtime_args(parser)
     parser.add_argument("--base-frame", default="base")
     parser.add_argument("--camera-frame", help="override camera frame name")
     return parser
@@ -59,10 +58,12 @@ def main(argv: list[str] | None = None) -> int:
         camera_frame = args.camera_frame or config.get("camera", {}).get(
             "frame", "zed_left_camera_optical_frame"
         )
+        zed_config = config_from_args(args)
+        zed_settings = None
 
         image_path = args.image or args.recovery_image
         if args.image is None:
-            capture_zed_left_image(image_path, args.resolution, args.fps, args.open_timeout)
+            zed_settings = capture_zed_left_image(image_path, zed_config)
 
         table_references = load_table_references(args.references)
         marker_poses = detect_marker_poses(
@@ -73,6 +74,8 @@ def main(argv: list[str] | None = None) -> int:
             marker_ids=sorted(table_references),
             ignore_distortion=args.ignore_distortion,
             require_all=False,
+            resolution=zed_config.resolution,
+            eye=zed_config.eye,
         )
         result = recover_base_to_camera(
             table_references,
@@ -85,6 +88,7 @@ def main(argv: list[str] | None = None) -> int:
             references_path=args.references,
             base_frame=args.base_frame,
             camera_frame=camera_frame,
+            zed_settings=zed_settings,
         )
         write_yaml(args.output, document)
         print(

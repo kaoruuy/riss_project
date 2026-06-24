@@ -231,6 +231,43 @@ camera intrinsics and writes RGB colors from the left image. Use `.ply` for a
 portable ASCII point cloud or `.npz` for compressed NumPy arrays containing
 `points` and `colors`.
 
+All ZED scripts use the shared settings in `camera.zed_config` by default:
+`HD720`, `30` FPS, `NEURAL` depth mode, meter units, `IMAGE` coordinate system,
+rectified `LEFT` image stream, and `calibration/zed_intrinsics.yaml`.
+
+Camera frame convention:
+
+```text
++X = image right
++Y = image down
++Z = forward from camera
+```
+
+This is the OpenCV optical image convention and matches the point cloud
+projection in `camera.zed_pointcloud`: `x=(u-cx)z/fx`, `y=(v-cy)z/fy`,
+`z=depth`. Keep these settings identical during hand-eye calibration, live
+ArUco viewing, point cloud capture, and grasping. Hand-eye sample YAML files
+include a `zed_settings` block so mismatched sample captures can be detected
+before fitting.
+
+Fitted calibration YAML files also include quick metadata blocks:
+
+```yaml
+calibration:
+  date: 2026-06-26
+  sample_count: 34
+zed:
+  sdk_version: 5.3.1
+  resolution: HD720
+  fps: 30
+  depth_mode: NEURAL
+  coordinate_units: METER
+  coordinate_system: IMAGE
+results:
+  translation_rms_m: 0.0168
+  rotation_rms_deg: 3.91
+```
+
 ## Camera Calibration
 
 Calibration files live in `calibration/`:

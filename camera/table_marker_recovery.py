@@ -11,7 +11,6 @@ import yaml
 
 from camera.aruco_pose import (
     as_transform_matrix,
-    camera_parameters,
     detect_markers,
     estimate_camera_to_marker,
     invert_transform,
@@ -19,6 +18,7 @@ from camera.aruco_pose import (
     select_marker,
 )
 from camera.fit_hand_eye import rotation_angle_deg, rotation_to_quaternion_xyzw
+from camera.zed_config import DEFAULT_EYE, DEFAULT_RESOLUTION, camera_parameters_from_config
 
 
 DEFAULT_TABLE_REFERENCES = Path("calibration/table_marker_references.yaml")
@@ -50,8 +50,15 @@ def detect_marker_poses(
     marker_ids: list[int],
     ignore_distortion: bool = False,
     require_all: bool = True,
+    resolution: str = DEFAULT_RESOLUTION,
+    eye: str = DEFAULT_EYE,
 ) -> dict[int, np.ndarray]:
-    camera = camera_parameters(config, ignore_distortion=ignore_distortion)
+    camera = camera_parameters_from_config(
+        config,
+        resolution=resolution,
+        eye=eye,
+        ignore_distortion=ignore_distortion,
+    )
     corners, ids = detect_markers(image_path, dictionary_name)
     poses = {}
     for marker_id in marker_ids:
@@ -142,6 +149,7 @@ def table_references_document(
     base_to_camera_path: Path,
     base_frame: str,
     camera_frame: str,
+    zed_settings: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "frames": {
@@ -154,6 +162,7 @@ def table_references_document(
         "dictionary": dictionary_name,
         "marker_length_m": float(marker_length_m),
         "base_to_camera_file": str(base_to_camera_path),
+        "zed_settings": zed_settings,
         "table_markers": [
             {
                 "marker_id": marker_id,
@@ -178,6 +187,7 @@ def recovered_base_to_camera_document(
     references_path: Path,
     base_frame: str,
     camera_frame: str,
+    zed_settings: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     matrix = result["T_base_cam"]
     translation = matrix[:3, 3]
@@ -189,6 +199,7 @@ def recovered_base_to_camera_document(
         "timestamp": time.time(),
         "image": str(image_path),
         "table_references_file": str(references_path),
+        "zed_settings": zed_settings,
         "used_marker_ids": result["used_marker_ids"],
         "translation_m": {
             "x": float(translation[0]),

@@ -21,6 +21,7 @@ from camera.table_marker_recovery import (
     table_references_document,
     write_yaml,
 )
+from camera.zed_config import add_zed_runtime_args, config_from_args
 
 
 DEFAULT_BASE_TO_CAMERA = Path("calibration/base_to_camera.yaml")
@@ -46,9 +47,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="comma-separated table marker ids to record; defaults to 1,2,3,4",
     )
     parser.add_argument("--ignore-distortion", action="store_true")
-    parser.add_argument("--resolution", default="HD720")
-    parser.add_argument("--fps", type=int, default=30)
-    parser.add_argument("--open-timeout", type=float, default=30.0)
+    add_zed_runtime_args(parser)
     parser.add_argument("--base-frame", default="base")
     parser.add_argument("--camera-frame", help="override camera frame name")
     return parser
@@ -66,10 +65,12 @@ def main(argv: list[str] | None = None) -> int:
         camera_frame = args.camera_frame or config.get("camera", {}).get(
             "frame", "zed_left_camera_optical_frame"
         )
+        zed_config = config_from_args(args)
+        zed_settings = None
 
         image_path = args.image or args.reference_image
         if args.image is None:
-            capture_zed_left_image(image_path, args.resolution, args.fps, args.open_timeout)
+            zed_settings = capture_zed_left_image(image_path, zed_config)
 
         t_base_cam = load_base_to_camera(args.base_to_camera)
         marker_poses = detect_marker_poses(
@@ -79,6 +80,8 @@ def main(argv: list[str] | None = None) -> int:
             marker_length_m=marker_length,
             marker_ids=marker_ids,
             ignore_distortion=args.ignore_distortion,
+            resolution=zed_config.resolution,
+            eye=zed_config.eye,
         )
         table_references = compute_table_references(t_base_cam, marker_poses)
         document = table_references_document(
@@ -90,6 +93,7 @@ def main(argv: list[str] | None = None) -> int:
             base_to_camera_path=args.base_to_camera,
             base_frame=args.base_frame,
             camera_frame=camera_frame,
+            zed_settings=zed_settings,
         )
         write_yaml(args.output, document)
         print(f"Saved {len(table_references)} table marker references to {args.output}")

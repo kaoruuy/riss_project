@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import sys
 import time
@@ -69,22 +70,37 @@ def load_samples(path: Path) -> list[dict[str, np.ndarray]]:
     if not isinstance(raw_samples, list):
         raise ValueError(f"{path} must contain a list of samples or a 'samples' list")
 
-    samples = [parse_sample(sample, index) for index, sample in enumerate(raw_samples, start=1)]
+    top_level_zed_settings = data.get("zed_settings") if isinstance(data, dict) else None
+    if top_level_zed_settings is not None and not isinstance(top_level_zed_settings, dict):
+        raise ValueError(f"{path} zed_settings must be a mapping")
+
+    samples = [
+        parse_sample(sample, index, top_level_zed_settings)
+        for index, sample in enumerate(raw_samples, start=1)
+    ]
     if len(samples) < 3:
         raise ValueError("at least 3 paired samples are required")
     return samples
 
 
-def parse_sample(sample: Any, index: int) -> dict[str, np.ndarray]:
+def parse_sample(
+    sample: Any,
+    index: int,
+    default_zed_settings: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if not isinstance(sample, dict):
         raise ValueError(f"sample {index} must be a mapping")
     transforms = sample.get("transforms", sample)
     if not isinstance(transforms, dict):
         raise ValueError(f"sample {index} transforms must be a mapping")
 
+    zed_settings = sample.get("zed_settings", default_zed_settings)
+    if zed_settings is not None and not isinstance(zed_settings, dict):
+        raise ValueError(f"sample {index} zed_settings must be a mapping")
     return {
         "T_base_ee": get_transform(transforms, "T_base_ee", index),
         "T_cam_marker": get_transform(transforms, "T_cam_marker", index),
+        "zed_settings": zed_settings,
     }
 
 
@@ -281,6 +297,9 @@ def save_base_to_camera(
     matrix = result["T_base_cam"]
     translation = matrix[:3, 3]
     quaternion = rotation_to_quaternion_xyzw(matrix[:3, :3])
+    timestamp = time.time()
+    zed_settings = common_zed_settings(samples)
+    quality = result_quality(result)
     document = {
         "frames": {"parent": args.base_frame, "child": args.camera_frame},
         "camera": {
@@ -290,10 +309,18 @@ def save_base_to_camera(
             "calibration_source": "/usr/local/zed/settings/SN14778242.conf",
         },
         "calibrated": True,
+        "calibration": {
+            "date": dt.datetime.fromtimestamp(timestamp).date().isoformat(),
+            "timestamp": timestamp,
+            "sample_count": len(samples),
+            "method": f"cv2.calibrateRobotWorldHandEye:{result['method']}",
+        },
+        "zed": zed_settings,
+        "results": quality,
         "method": f"cv2.calibrateRobotWorldHandEye:{result['method']}",
         "selected_convention": result["convention"],
         "sample_count": len(samples),
-        "timestamp": time.time(),
+        "timestamp": timestamp,
         "translation_m": {
             "x": float(translation[0]),
             "y": float(translation[1]),
@@ -327,13 +354,23 @@ def save_ee_marker(
     matrix = result["T_ee_marker"]
     translation = matrix[:3, 3]
     quaternion = rotation_to_quaternion_xyzw(matrix[:3, :3])
+    timestamp = time.time()
+    quality = result_quality(result)
     document = {
         "frames": {"parent": args.ee_frame, "child": args.marker_frame},
         "calibrated": True,
+        "calibration": {
+            "date": dt.datetime.fromtimestamp(timestamp).date().isoformat(),
+            "timestamp": timestamp,
+            "sample_count": len(samples),
+            "method": f"cv2.calibrateRobotWorldHandEye:{result['method']}",
+        },
+        "zed": common_zed_settings(samples),
+        "results": quality,
         "method": f"cv2.calibrateRobotWorldHandEye:{result['method']}",
         "selected_convention": result["convention"],
         "sample_count": len(samples),
-        "timestamp": time.time(),
+        "timestamp": timestamp,
         "translation_m": {
             "x": float(translation[0]),
             "y": float(translation[1]),
@@ -365,6 +402,30 @@ def result_payload(result: dict[str, Any]) -> dict[str, Any]:
         "residuals": result["residuals"],
         "tested_conventions": result["tested_conventions"],
     }
+
+
+def result_quality(result: dict[str, Any]) -> dict[str, float]:
+    residuals = result["residuals"]
+    return {
+        "translation_rms_m": float(residuals["translation_m"]["rms"]),
+        "translation_max_m": float(residuals["translation_m"]["max"]),
+        "rotation_rms_deg": float(residuals["rotation_deg"]["rms"]),
+        "rotation_max_deg": float(residuals["rotation_deg"]["max"]),
+    }
+
+
+def common_zed_settings(samples: list[dict[str, Any]]) -> dict[str, Any] | None:
+    common = None
+    for sample in samples:
+        settings = sample.get("zed_settings")
+        if settings is None:
+            continue
+        if common is None:
+            common = settings
+            continue
+        if settings != common:
+            raise ValueError("samples contain mismatched zed_settings")
+    return common
 
 
 def write_yaml(path: Path, document: dict[str, Any]) -> None:

@@ -10,6 +10,14 @@ from typing import Any
 
 import numpy as np
 
+from camera.zed_config import (
+    ZedRuntimeConfig,
+    add_zed_runtime_args,
+    config_from_args,
+    left_view_value,
+    open_zed_camera,
+)
+
 
 DEFAULT_OUTPUT = Path("zed_pointcloud.ply")
 
@@ -31,9 +39,7 @@ class ColoredPointCloud:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--resolution", default="HD720")
-    parser.add_argument("--fps", type=int, default=30)
-    parser.add_argument("--depth-mode", default="NEURAL", choices=["PERFORMANCE", "QUALITY", "ULTRA", "NEURAL"])
+    add_zed_runtime_args(parser)
     parser.add_argument("--min-depth-m", type=float, default=0.1)
     parser.add_argument("--max-depth-m", type=float, default=5.0)
     parser.add_argument("--stride", type=int, default=2, help="sample every N pixels before filtering")
@@ -44,7 +50,6 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["bgra", "rgba", "bgr", "rgb"],
         help="channel order returned by the image source (ZED/OpenCV is usually bgra)",
     )
-    parser.add_argument("--open-timeout", type=float, default=30.0)
     return parser
 
 
@@ -52,15 +57,12 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         cloud = capture_zed_point_cloud(
-            resolution=args.resolution,
-            fps=args.fps,
-            depth_mode=args.depth_mode,
+            zed_config=config_from_args(args),
             min_depth_m=args.min_depth_m,
             max_depth_m=args.max_depth_m,
             stride=args.stride,
             max_points=args.max_points,
             color_order=args.color_order,
-            open_timeout=args.open_timeout,
         )
         write_point_cloud(args.output, cloud)
         print(f"Wrote {len(cloud.points)} points to {args.output}")
@@ -71,40 +73,14 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def capture_zed_point_cloud(
-    resolution: str,
-    fps: int,
-    depth_mode: str,
+    zed_config: ZedRuntimeConfig,
     min_depth_m: float,
     max_depth_m: float,
     stride: int,
     max_points: int,
     color_order: str,
-    open_timeout: float,
 ) -> ColoredPointCloud:
-    try:
-        import pyzed.sl as sl
-    except ImportError as exc:
-        raise ImportError("pyzed is required; install the ZED SDK Python API") from exc
-
-    resolution_value = getattr(sl.RESOLUTION, resolution, None)
-    if resolution_value is None:
-        raise ValueError(f"Unsupported ZED resolution: {resolution}")
-    depth_mode_value = getattr(sl.DEPTH_MODE, depth_mode, None)
-    if depth_mode_value is None:
-        raise ValueError(f"Unsupported ZED depth mode: {depth_mode}")
-
-    zed = sl.Camera()
-    params = sl.InitParameters()
-    params.camera_resolution = resolution_value
-    params.camera_fps = fps
-    params.depth_mode = depth_mode_value
-    params.coordinate_units = sl.UNIT.METER
-    params.open_timeout_sec = open_timeout
-
-    result = zed.open(params)
-    if result != sl.ERROR_CODE.SUCCESS:
-        zed.close()
-        raise RuntimeError(f"Could not open ZED camera: {result}")
+    zed, sl = open_zed_camera(zed_config)
 
     try:
         intrinsics = zed_left_intrinsics(zed)
@@ -115,7 +91,7 @@ def capture_zed_point_cloud(
         if result != sl.ERROR_CODE.SUCCESS:
             raise RuntimeError(f"ZED grab failed: {result}")
 
-        result = zed.retrieve_image(image, sl.VIEW.LEFT)
+        result = zed.retrieve_image(image, left_view_value(sl, zed_config))
         if result != sl.ERROR_CODE.SUCCESS:
             raise RuntimeError(f"ZED image retrieval failed: {result}")
 

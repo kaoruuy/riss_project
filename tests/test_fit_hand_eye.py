@@ -10,6 +10,19 @@ import yaml
 from camera.fit_hand_eye import fit_hand_eye, invert_transform, load_samples, main, make_transform
 
 
+ZED_SETTINGS = {
+    "sdk_version": "5.3.1",
+    "resolution": "HD720",
+    "fps": 30,
+    "depth_mode": "NEURAL",
+    "coordinate_units": "METER",
+    "coordinate_system": "IMAGE",
+    "left_view": "LEFT",
+    "left_image_rectification": "rectified",
+    "intrinsics_file": "calibration/zed_intrinsics.yaml",
+}
+
+
 def rot_x(angle: float) -> np.ndarray:
     c, s = np.cos(angle), np.sin(angle)
     return np.array([[1.0, 0.0, 0.0], [0.0, c, -s], [0.0, s, c]])
@@ -64,6 +77,7 @@ class FitHandEyeTests(unittest.TestCase):
                             {
                                 "T_base_ee": sample["T_base_ee"].tolist(),
                                 "T_cam_marker": sample["T_cam_marker"].tolist(),
+                                "zed_settings": ZED_SETTINGS,
                             }
                             for sample in samples[:3]
                         ]
@@ -76,6 +90,7 @@ class FitHandEyeTests(unittest.TestCase):
 
         self.assertEqual(len(loaded), 3)
         np.testing.assert_allclose(loaded[0]["T_base_ee"], samples[0]["T_base_ee"])
+        self.assertEqual(loaded[0]["zed_settings"]["depth_mode"], "NEURAL")
 
     def test_cli_writes_result_files(self) -> None:
         samples, _t_base_cam, _t_ee_marker = synthetic_samples()
@@ -91,6 +106,7 @@ class FitHandEyeTests(unittest.TestCase):
                             {
                                 "T_base_ee": sample["T_base_ee"].tolist(),
                                 "T_cam_marker": sample["T_cam_marker"].tolist(),
+                                "zed_settings": ZED_SETTINGS,
                             }
                             for sample in samples
                         ]
@@ -116,8 +132,14 @@ class FitHandEyeTests(unittest.TestCase):
         self.assertTrue(base_cam["calibrated"])
         self.assertTrue(ee_marker["calibrated"])
         self.assertEqual(base_cam["sample_count"], len(samples))
+        self.assertEqual(base_cam["calibration"]["sample_count"], len(samples))
+        self.assertEqual(base_cam["zed"]["depth_mode"], "NEURAL")
+        self.assertEqual(base_cam["zed"]["coordinate_system"], "IMAGE")
+        self.assertIn("translation_rms_m", base_cam["results"])
+        self.assertIn("rotation_rms_deg", base_cam["results"])
         self.assertIn("transform_matrix", base_cam)
         self.assertIn("T_ee_marker", ee_marker)
+        self.assertEqual(ee_marker["zed"]["depth_mode"], "NEURAL")
         self.assertIn("selected_convention", base_cam)
         self.assertIn("tested_conventions", ee_marker)
 

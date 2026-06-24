@@ -61,18 +61,54 @@ def build_dataset(input_dir: Path, marker_id: int | None = 0) -> list[dict[str, 
             raise ValueError(
                 f"{files['marker']} marker_id is {detected_marker_id}; expected hand marker {marker_id}"
             )
+        zed_settings = sample_zed_settings(base_ee, marker, files)
         samples.append(
             {
                 "id": stem,
                 "image": marker.get("image"),
                 "marker_id": detected_marker_id,
+                "zed_settings": zed_settings,
                 "base_ee_file": str(files["base_ee"]),
                 "marker_file": str(files["marker"]),
                 "T_base_ee": as_transform_matrix(base_ee.get("T_base_ee"), f"{files['base_ee']} T_base_ee").tolist(),
                 "T_cam_marker": as_transform_matrix(marker.get("T_cam_marker"), f"{files['marker']} T_cam_marker").tolist(),
             }
         )
+    validate_common_zed_settings(samples)
     return samples
+
+
+def sample_zed_settings(
+    base_ee: dict[str, Any],
+    marker: dict[str, Any],
+    files: dict[str, Path],
+) -> dict[str, Any] | None:
+    base_settings = base_ee.get("zed_settings")
+    marker_settings = marker.get("zed_settings")
+    if base_settings is not None and not isinstance(base_settings, dict):
+        raise ValueError(f"{files['base_ee']} zed_settings must be a mapping")
+    if marker_settings is not None and not isinstance(marker_settings, dict):
+        raise ValueError(f"{files['marker']} zed_settings must be a mapping")
+    if base_settings is not None and marker_settings is not None and base_settings != marker_settings:
+        raise ValueError(f"{files['base_ee']} and {files['marker']} have different zed_settings")
+    return marker_settings or base_settings
+
+
+def validate_common_zed_settings(samples: list[dict[str, Any]]) -> None:
+    common = None
+    common_id = None
+    for sample in samples:
+        settings = sample.get("zed_settings")
+        if settings is None:
+            continue
+        if common is None:
+            common = settings
+            common_id = sample.get("id")
+            continue
+        if settings != common:
+            raise ValueError(
+                f"ZED settings mismatch between samples {common_id} and {sample.get('id')}"
+            )
 
 
 def find_sample_pairs(input_dir: Path) -> list[tuple[str, dict[str, Path]]]:
@@ -123,10 +159,19 @@ def write_dataset(output: Path, samples: list[dict[str, Any]], input_dir: Path) 
     document = {
         "source_dir": str(input_dir),
         "sample_count": len(samples),
+        "zed_settings": common_zed_settings(samples),
         "samples": samples,
     }
     with output.open("w", encoding="utf-8") as file:
         yaml.safe_dump(document, file, sort_keys=False)
+
+
+def common_zed_settings(samples: list[dict[str, Any]]) -> dict[str, Any] | None:
+    for sample in samples:
+        settings = sample.get("zed_settings")
+        if settings is not None:
+            return settings
+    return None
 
 
 if __name__ == "__main__":

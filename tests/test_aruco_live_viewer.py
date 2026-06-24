@@ -6,12 +6,13 @@ import unittest
 
 import numpy as np
 
-from camera.aruco_live_viewer import live_camera_parameters, print_transform
+from camera.aruco_live_viewer import print_transform
+from camera.zed_config import camera_parameters_from_config
 
 
 class ArucoLiveViewerTests(unittest.TestCase):
     def test_live_camera_parameters_reads_aruco_config_shape(self) -> None:
-        params = live_camera_parameters(
+        params = camera_parameters_from_config(
             {
                 "camera": {
                     "fx": 772.11,
@@ -31,7 +32,7 @@ class ArucoLiveViewerTests(unittest.TestCase):
         self.assertAlmostEqual(params["camera_matrix"][0, 0], 772.11)
 
     def test_live_camera_parameters_reads_zed_intrinsics_shape(self) -> None:
-        params = live_camera_parameters(
+        params = camera_parameters_from_config(
             {
                 "resolutions": {
                     "HD720": {

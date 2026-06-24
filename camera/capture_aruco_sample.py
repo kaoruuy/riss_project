@@ -16,12 +16,19 @@ from arm.base_ee_tracker import base_ee_document, sample_from_xarm_tcp_pose
 from arm.xarm_controller import DEFAULT_ENV_FILE, XArmCommandError, XArmController
 from camera.aruco_pose import (
     DEFAULT_CONFIG,
-    camera_parameters,
     detect_markers,
     estimate_camera_to_marker,
     load_config,
     required_value,
     select_marker,
+)
+from camera.zed_config import (
+    ZedRuntimeConfig,
+    add_zed_runtime_args,
+    camera_parameters_from_config,
+    config_from_args,
+    left_view_value,
+    open_zed_camera,
 )
 
 
@@ -42,9 +49,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="specific marker id to use for hand-eye calibration; defaults to hand marker 0",
     )
     parser.add_argument("--ignore-distortion", action="store_true")
-    parser.add_argument("--resolution", default="HD720")
-    parser.add_argument("--fps", type=int, default=30)
-    parser.add_argument("--open-timeout", type=float, default=30.0)
+    add_zed_runtime_args(parser)
     parser.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
     parser.add_argument("--ip", help="override XARM_IP from .env")
     parser.add_argument("--base-frame", default="base")
@@ -72,11 +77,12 @@ def main(argv: list[str] | None = None) -> int:
         camera_frame = args.camera_frame or config.get("camera", {}).get(
             "frame", "zed_left_camera_optical_frame"
         )
+        zed_config = config_from_args(args)
 
         controller = XArmController(ip=args.ip, env_file=args.env_file)
         controller.connect()
         try:
-            capture_zed_left_image(paths["image"], args.resolution, args.fps, args.open_timeout)
+            zed_settings = capture_zed_left_image(paths["image"], zed_config)
             tcp_pose = controller.get_tcp_pose()
         finally:
             controller.disconnect()
@@ -90,6 +96,9 @@ def main(argv: list[str] | None = None) -> int:
             ignore_distortion=args.ignore_distortion,
             camera_frame=camera_frame,
             sample_index=paths["index"],
+            zed_settings=zed_settings,
+            resolution=zed_config.resolution,
+            eye=zed_config.eye,
         )
         write_yaml(paths["marker"], marker_document)
 
@@ -102,6 +111,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         base_ee_document_["sample_index"] = paths["index"]
         base_ee_document_["paired_image"] = str(paths["image"])
+        base_ee_document_["zed_settings"] = zed_settings
         write_yaml(paths["base_ee"], base_ee_document_)
 
         print(f"Saved image: {paths['image']}")
@@ -147,35 +157,20 @@ def next_sample_index(output_dir: Path) -> int:
     return max(indices, default=0) + 1
 
 
-def capture_zed_left_image(path: Path, resolution: str, fps: int, open_timeout: float) -> None:
+def capture_zed_left_image(path: Path, zed_config: ZedRuntimeConfig) -> dict[str, Any]:
     try:
         import cv2
-        import pyzed.sl as sl
     except ImportError as exc:
-        raise ImportError("pyzed and OpenCV are required for ZED image capture") from exc
+        raise ImportError("OpenCV is required for ZED image capture") from exc
 
-    resolution_value = getattr(sl.RESOLUTION, resolution, None)
-    if resolution_value is None:
-        raise ValueError(f"Unsupported ZED resolution: {resolution}")
-
-    zed = sl.Camera()
-    params = sl.InitParameters()
-    params.camera_resolution = resolution_value
-    params.camera_fps = fps
-    params.depth_mode = sl.DEPTH_MODE.NONE
-    params.open_timeout_sec = open_timeout
-
-    result = zed.open(params)
-    if result != sl.ERROR_CODE.SUCCESS:
-        zed.close()
-        raise RuntimeError(f"Could not open ZED camera: {result}")
+    zed, sl = open_zed_camera(zed_config)
 
     try:
         image = sl.Mat()
         result = zed.grab()
         if result != sl.ERROR_CODE.SUCCESS:
             raise RuntimeError(f"ZED grab failed: {result}")
-        result = zed.retrieve_image(image, sl.VIEW.LEFT)
+        result = zed.retrieve_image(image, left_view_value(sl, zed_config))
         if result != sl.ERROR_CODE.SUCCESS:
             raise RuntimeError(f"ZED image retrieval failed: {result}")
 
@@ -183,6 +178,7 @@ def capture_zed_left_image(path: Path, resolution: str, fps: int, open_timeout: 
         frame = np.asarray(image.get_data())
         if not cv2.imwrite(str(path), frame):
             raise RuntimeError(f"failed to write image: {path}")
+        return zed_config.metadata_with_sdk(sl)
     finally:
         zed.close()
 
@@ -196,8 +192,16 @@ def marker_pose_document(
     ignore_distortion: bool,
     camera_frame: str,
     sample_index: int,
+    zed_settings: dict[str, Any] | None = None,
+    resolution: str = "HD720",
+    eye: str = "left",
 ) -> dict[str, Any]:
-    camera = camera_parameters(config, ignore_distortion=ignore_distortion)
+    camera = camera_parameters_from_config(
+        config,
+        resolution=resolution,
+        eye=eye,
+        ignore_distortion=ignore_distortion,
+    )
     corners, ids = detect_markers(image_path, dictionary_name)
     corner_set, detected_id = select_marker(corners, ids, marker_id)
     transform = estimate_camera_to_marker(corner_set, marker_length_m, camera)
@@ -209,6 +213,7 @@ def marker_pose_document(
         "marker_length_m": float(marker_length_m),
         "dictionary": dictionary_name,
         "camera_frame": camera_frame,
+        "zed_settings": zed_settings,
         "T_cam_marker": transform["marker_to_camera"].tolist(),
         "T_marker_cam": transform["camera_to_marker"].tolist(),
         "marker_translation_in_camera_m": transform["translation"].reshape(3).tolist(),
