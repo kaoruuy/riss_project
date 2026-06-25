@@ -7,86 +7,109 @@ camera:
   intrinsics_file: calibration/zed_intrinsics.yaml
   calibration_source: /usr/local/zed/settings/SN14778242.conf
 calibrated: true
+calibration:
+  date: '2026-06-25'
+  timestamp: 1782404476.3467782
+  sample_count: 30
+  method: cv2.calibrateRobotWorldHandEye:shah
+zed:
+  resolution: HD720
+  fps: 30
+  depth_mode: NEURAL
+  coordinate_units: METER
+  coordinate_system: IMAGE
+  left_view: LEFT
+  intrinsics_file: calibration/zed_intrinsics.yaml
+  eye: left
+  open_timeout: 30.0
+  left_image_stream_type: LEFT
+  left_image_rectification: rectified
+  sdk_version: 5.3.1
+results:
+  translation_rms_m: 0.01645777112504113
+  translation_max_m: 0.04170639575789758
+  rotation_rms_deg: 6.391099215363554
+  rotation_max_deg: 18.77804723996994
 method: cv2.calibrateRobotWorldHandEye:shah
 selected_convention: &id001
   T_cam_marker_input: as_given
   T_base_ee_input: as_given
   T_base_cam_from: inverse_opencv_Z
   T_ee_marker_from: inverse_opencv_X
-sample_count: 34
-timestamp: 1782249543.110424
+sample_count: 30
+timestamp: 1782404476.3467782
 translation_m:
-  x: 0.8085467029668488
-  y: 0.0346485991114986
-  z: 0.5520225003066053
+  x: 0.24986089181175444
+  y: -0.44264016210335233
+  z: 0.5096937207461606
 rotation_quaternion_xyzw:
-  x: 0.6308734371107315
-  y: 0.6173711324111048
-  z: -0.3383304327067074
-  w: -0.32616576999742686
+  x: 0.9240662606000486
+  y: -0.005243704689315221
+  z: 0.10080600398210604
+  w: -0.368662717321584
 transform_matrix:
-- - 0.008770806339844173
-  - 0.5582624843595848
-  - -0.8296180274757857
-  - 0.8085467029668488
-- - 0.9996697087489677
-  - -0.024937550694831584
-  - -0.006212243966268127
-  - 0.0346485991114986
-- - -0.02415670436758008
-  - -0.8292895255108478
-  - -0.558296817572956
-  - 0.5520225003066053
+- - 0.9796213062445817
+  - 0.06463576953285434
+  - 0.19016917113074627
+  - 0.24986089181175444
+- - -0.08401789186864016
+  - -0.7281206088363943
+  - 0.6802803634044334
+  - -0.44264016210335233
+- - 0.18243653745236696
+  - -0.6823947510676018
+  - -0.7078519008364511
+  - 0.5096937207461606
 - - 0.0
   - 0.0
   - 0.0
   - 1.0
 residuals:
   translation_m:
-    mean: 0.015421260078801473
-    max: 0.02992116966777159
-    rms: 0.01678077947669745
+    mean: 0.013747356368974164
+    max: 0.04170639575789758
+    rms: 0.01645777112504113
   rotation_deg:
-    mean: 3.3614459944685446
-    max: 9.941562602928622
-    rms: 3.906386656254036
+    mean: 4.779343992099015
+    max: 18.77804723996994
+    rms: 6.391099215363554
 tested_conventions:
 - convention: *id001
-  residual_score: 0.055844646039237805
-  translation_rms_m: 0.01678077947669745
-  translation_max_m: 0.02992116966777159
-  rotation_rms_deg: 3.906386656254036
-  rotation_max_deg: 9.941562602928622
+  residual_score: 0.08036876327867667
+  translation_rms_m: 0.01645777112504113
+  translation_max_m: 0.04170639575789758
+  rotation_rms_deg: 6.391099215363554
+  rotation_max_deg: 18.77804723996994
 - convention:
     T_cam_marker_input: inverted
     T_base_ee_input: inverted
     T_base_cam_from: inverse_opencv_X
     T_ee_marker_from: inverse_opencv_Z
-  residual_score: 0.05646217469730823
-  translation_rms_m: 0.017398308134773093
-  translation_max_m: 0.027625651224818363
-  rotation_rms_deg: 3.9063866562535137
-  rotation_max_deg: 9.941562602928474
-- convention:
-    T_cam_marker_input: inverted
-    T_base_ee_input: as_given
-    T_base_cam_from: inverse_opencv_Z
-    T_ee_marker_from: inverse_opencv_X
-  residual_score: 0.6514133247443862
-  translation_rms_m: 0.19523130197734626
-  translation_max_m: 0.2957013819132655
-  rotation_rms_deg: 45.61820227670399
-  rotation_max_deg: 55.50631841919705
+  residual_score: 0.08322715678040601
+  translation_rms_m: 0.01931616462677072
+  translation_max_m: 0.042596793894218526
+  rotation_rms_deg: 6.391099215363529
+  rotation_max_deg: 18.778047239970018
 - convention:
     T_cam_marker_input: as_given
     T_base_ee_input: inverted
     T_base_cam_from: inverse_opencv_X
     T_ee_marker_from: inverse_opencv_Z
-  residual_score: 0.7258579136670034
-  translation_rms_m: 0.2696758908999642
-  translation_max_m: 0.4550062665684032
-  rotation_rms_deg: 45.61820227670391
-  rotation_max_deg: 55.506318419187465
+  residual_score: 0.8885817678270451
+  translation_rms_m: 0.30254196247969983
+  translation_max_m: 0.47960439180279546
+  rotation_rms_deg: 58.60398053473453
+  rotation_max_deg: 68.52927229362264
+- convention:
+    T_cam_marker_input: inverted
+    T_base_ee_input: as_given
+    T_base_cam_from: inverse_opencv_Z
+    T_ee_marker_from: inverse_opencv_X
+  residual_score: 0.8916226838124233
+  translation_rms_m: 0.30558287846507814
+  translation_max_m: 0.4774490203273204
+  rotation_rms_deg: 58.60398053473451
+  rotation_max_deg: 68.52927229362231
 notes:
 - Estimated from multiple paired T_base_ee and T_cam_marker samples.
 - All combinations of inverting T_base_ee and T_cam_marker were tested; this file
