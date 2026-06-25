@@ -26,6 +26,7 @@ class CaptureArucoSampleTests(unittest.TestCase):
 
         self.assertEqual(paths["index"], 1)
         self.assertEqual(paths["image"].name, "pose_001.png")
+        self.assertEqual(paths["annotated_image"].name, "pose_001_annotated.png")
         self.assertEqual(paths["marker"].name, "pose_001_marker.yaml")
         self.assertEqual(paths["base_ee"].name, "pose_001_base_ee.yaml")
 
@@ -48,6 +49,7 @@ class CaptureArucoSampleTests(unittest.TestCase):
         )
 
         self.assertEqual(document["sample_index"], 7)
+        self.assertIsNone(document["annotated_image"])
         self.assertEqual(document["marker_id"], 0)
         self.assertEqual(document["marker_length_m"], 0.045)
         self.assertEqual(document["zed_settings"]["depth_mode"], "NEURAL")

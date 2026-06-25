@@ -23,12 +23,15 @@ fitted transform outputs.
 
 ```text
 pose_001.png
+pose_001_annotated.png
 pose_001_marker.yaml
 pose_001_base_ee.yaml
 ```
 
 The marker YAML stores `T_cam_marker`; the base-EE YAML stores the matching
-`T_base_ee`. New captures also include `zed_settings`, and the dataset builder
+`T_base_ee`. The annotated PNG shows detected marker corners plus the selected
+marker axes for inspection; keep the raw `pose_001.png` as the calibration
+image. New captures also include `zed_settings`, and the dataset builder
 rejects mismatched ZED settings before fitting.
 
 ## Notes

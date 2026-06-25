@@ -152,13 +152,16 @@ the same monotonically increasing index:
 
 ```text
 calibration/samples/pose_001.png
+calibration/samples/pose_001_annotated.png
 calibration/samples/pose_001_marker.yaml
 calibration/samples/pose_001_base_ee.yaml
 ```
 
 The marker YAML contains `T_cam_marker`; the base-EE YAML contains the matching
-`T_base_ee`. This prevents accidentally reusing an old image with a new arm
-pose.
+`T_base_ee`. The annotated PNG draws all detected marker corners plus the
+selected hand marker ID and XYZ axes, while the raw `pose_001.png` remains
+unchanged for calibration. This prevents accidentally reusing an old image with
+a new arm pose.
 
 After collecting several poses, build the dataset consumed by the fitter:
 

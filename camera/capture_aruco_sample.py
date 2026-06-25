@@ -65,6 +65,7 @@ def main(argv: list[str] | None = None) -> int:
         paths = next_sample_paths(args.output_dir)
         if args.dry_run:
             print(paths["image"])
+            print(paths["annotated_image"])
             print(paths["marker"])
             print(paths["base_ee"])
             return 0
@@ -99,6 +100,7 @@ def main(argv: list[str] | None = None) -> int:
             zed_settings=zed_settings,
             resolution=zed_config.resolution,
             eye=zed_config.eye,
+            annotated_image_path=paths["annotated_image"],
         )
         write_yaml(paths["marker"], marker_document)
 
@@ -115,6 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         write_yaml(paths["base_ee"], base_ee_document_)
 
         print(f"Saved image: {paths['image']}")
+        print(f"Saved annotated image: {paths['annotated_image']}")
         print(f"Saved marker pose: {paths['marker']}")
         print(f"Saved xArm base-EE pose: {paths['base_ee']}")
         return 0
@@ -138,6 +141,7 @@ def next_sample_paths(output_dir: Path) -> dict[str, Any]:
     paths = {
         "index": index,
         "image": output_dir / f"{stem}.png",
+        "annotated_image": output_dir / f"{stem}_annotated.png",
         "marker": output_dir / f"{stem}_marker.yaml",
         "base_ee": output_dir / f"{stem}_base_ee.yaml",
     }
@@ -195,6 +199,7 @@ def marker_pose_document(
     zed_settings: dict[str, Any] | None = None,
     resolution: str = "HD720",
     eye: str = "left",
+    annotated_image_path: Path | None = None,
 ) -> dict[str, Any]:
     camera = camera_parameters_from_config(
         config,
@@ -205,10 +210,23 @@ def marker_pose_document(
     corners, ids = detect_markers(image_path, dictionary_name)
     corner_set, detected_id = select_marker(corners, ids, marker_id)
     transform = estimate_camera_to_marker(corner_set, marker_length_m, camera)
+    if annotated_image_path is not None:
+        write_annotated_marker_image(
+            image_path=image_path,
+            output_path=annotated_image_path,
+            corners=corners,
+            ids=ids,
+            selected_corners=corner_set,
+            selected_marker_id=int(detected_id),
+            transform=transform,
+            camera=camera,
+            axis_length_m=min(marker_length_m * 0.75, 0.03),
+        )
     return {
         "sample_index": sample_index,
         "timestamp": time.time(),
         "image": str(image_path),
+        "annotated_image": str(annotated_image_path) if annotated_image_path else None,
         "marker_id": int(detected_id),
         "marker_length_m": float(marker_length_m),
         "dictionary": dictionary_name,
@@ -219,6 +237,56 @@ def marker_pose_document(
         "marker_translation_in_camera_m": transform["translation"].reshape(3).tolist(),
         "marker_rotation_in_camera": transform["rotation"].tolist(),
     }
+
+
+def write_annotated_marker_image(
+    *,
+    image_path: Path,
+    output_path: Path,
+    corners: list[np.ndarray],
+    ids: np.ndarray,
+    selected_corners: np.ndarray,
+    selected_marker_id: int,
+    transform: dict[str, np.ndarray],
+    camera: dict[str, np.ndarray],
+    axis_length_m: float,
+) -> None:
+    try:
+        import cv2
+    except ImportError as exc:
+        raise ImportError("OpenCV is required for annotated ArUco images") from exc
+
+    image = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
+    if image is None:
+        raise FileNotFoundError(f"could not read image for annotation: {image_path}")
+
+    cv2.aruco.drawDetectedMarkers(image, corners, ids.reshape(-1, 1))
+    rotation = transform["rotation"]
+    translation = transform["translation"]
+    rvec, _jacobian = cv2.Rodrigues(rotation)
+    cv2.drawFrameAxes(
+        image,
+        camera["camera_matrix"],
+        camera["distortion"],
+        rvec,
+        translation,
+        axis_length_m,
+    )
+    anchor = tuple(np.round(selected_corners.reshape(4, 2)[0]).astype(int))
+    cv2.putText(
+        image,
+        f"selected ID {selected_marker_id}",
+        anchor,
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (0, 255, 255),
+        2,
+        cv2.LINE_AA,
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if not cv2.imwrite(str(output_path), image):
+        raise RuntimeError(f"failed to write annotated image: {output_path}")
 
 
 def write_yaml(path: Path, document: dict[str, Any]) -> None:
