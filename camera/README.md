@@ -84,6 +84,17 @@ convention, transforms points with `T_base_cam`, fits the dominant plane in the
 robot base frame, and visualizes the RGB image with the projected object center.
 Press `q` or `Esc` to quit.
 
+The detector intentionally rejects very wide connected regions so a table edge,
+arm shadow, or broad ridge is not treated as one object. Tune these limits for
+your target objects:
+
+```bash
+--max-cluster-width-m 0.50 \
+--max-cluster-depth-m 0.50 \
+--max-cluster-area-m2 0.18 \
+--min-cluster-density 0.05
+```
+
 Robot motion is disabled by default. To move the xArm to a safe approach pose
 above the detected center, pass `--move`; the command keeps the current TCP
 orientation, raises `z` by `--approach-height-m` (default `0.08` m), checks the

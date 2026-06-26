@@ -6,6 +6,8 @@ import unittest
 import numpy as np
 
 from camera.ransac_grasp_candidate import (
+    cluster_extent,
+    cluster_is_valid,
     fit_plane_ransac,
     largest_grid_cluster,
     object_center,
@@ -59,9 +61,60 @@ class RansacGraspCandidateTests(unittest.TestCase):
         large = np.array([[1.0, 1.0], [1.01, 1.0], [1.02, 1.0], [1.03, 1.0]])
         points = np.vstack((small, large))
 
-        indices = largest_grid_cluster(points, cell_size=0.03, min_points=3)
+        indices = largest_grid_cluster(
+            points,
+            cell_size=0.03,
+            min_points=3,
+            max_width_m=0.2,
+            max_depth_m=0.2,
+            max_area_m2=0.04,
+        )
 
         self.assertEqual(set(indices.tolist()), {2, 3, 4, 5})
+
+    def test_largest_grid_cluster_rejects_overly_wide_component(self) -> None:
+        wide = np.column_stack((np.linspace(0.0, 0.5, 20), np.zeros(20)))
+        compact = np.array([[1.0, 1.0], [1.01, 1.0], [1.0, 1.01], [1.01, 1.01]])
+        points = np.vstack((wide, compact))
+
+        indices = largest_grid_cluster(
+            points,
+            cell_size=0.03,
+            min_points=3,
+            max_width_m=0.12,
+            max_depth_m=0.12,
+            max_area_m2=0.02,
+        )
+
+        self.assertEqual(set(indices.tolist()), {20, 21, 22, 23})
+
+    def test_cluster_validity_uses_extent_and_density(self) -> None:
+        compact = np.array([[0.0, 0.0], [0.01, 0.0], [0.0, 0.01], [0.01, 0.01]])
+        wide = np.array([[0.0, 0.0], [0.2, 0.0], [0.4, 0.0], [0.6, 0.0]])
+
+        self.assertTrue(
+            cluster_is_valid(
+                compact,
+                cell_size=0.03,
+                min_points=3,
+                max_width_m=0.12,
+                max_depth_m=0.12,
+                max_area_m2=0.02,
+                min_density=0.0,
+            )
+        )
+        self.assertFalse(
+            cluster_is_valid(
+                wide,
+                cell_size=0.03,
+                min_points=3,
+                max_width_m=0.12,
+                max_depth_m=0.12,
+                max_area_m2=0.02,
+                min_density=0.0,
+            )
+        )
+        np.testing.assert_allclose(cluster_extent(compact), [0.01, 0.01])
 
     def test_object_center_can_use_top_height(self) -> None:
         points = np.array([[0.0, 0.0, 0.1], [0.2, 0.0, 0.2]])
