@@ -66,6 +66,38 @@ camera intrinsics and writes RGB colors from the left image. Use `.ply` for a
 portable ASCII point cloud or `.npz` for compressed NumPy arrays containing
 `points` and `colors`.
 
+## Tabletop Grasp Candidate
+
+Detect the tabletop plane with RANSAC, segment object points as bumps above the
+plane, and print the largest object cluster center in both camera and robot base
+frames:
+
+```bash
+python3 -m camera.ransac_grasp_candidate \
+  --base-to-camera calibration/base_to_camera.yaml \
+  --object-min-height-m 0.01 \
+  --object-max-height-m 0.08
+```
+
+The script uses the shared ZED settings, projects depth using the IMAGE camera
+convention, transforms points with `T_base_cam`, fits the dominant plane in the
+robot base frame, and visualizes the RGB image with the projected object center.
+Press `q` or `Esc` to quit.
+
+Robot motion is disabled by default. To move the xArm to a safe approach pose
+above the detected center, pass `--move`; the command keeps the current TCP
+orientation, raises `z` by `--approach-height-m` (default `0.08` m), checks the
+workspace limits, enforces `--max-speed`, and still requires typing `MOVE`:
+
+```bash
+python3 -m camera.ransac_grasp_candidate \
+  --move \
+  --workspace-x -0.30 0.80 \
+  --workspace-y -0.80 0.80 \
+  --workspace-z 0.02 0.80 \
+  --speed 30
+```
+
 ## Calibration Files
 
 Calibration files live in `calibration/`:
@@ -128,6 +160,25 @@ using OpenCV `drawFrameAxes`. Press `q` or `Esc` to quit. Use
 `--source webcam --camera-index 0` to view a standard webcam instead of the
 ZED stream. It prints `T_cam_marker` periodically so the terminal remains
 readable while the video window updates in real time.
+
+Solve one detected marker pose directly in robot base coordinates to verify the
+calibration transform:
+
+```bash
+python3 -m camera.solve_marker_base_pose \
+  calibration/table_marker_references.png \
+  --marker-id 1 \
+  --pretty
+```
+
+The script computes:
+
+```text
+T_base_marker = T_base_cam @ T_cam_marker
+```
+
+Use the same distortion setting that was used when the reference image was
+captured; changing `--ignore-distortion` changes the PnP result.
 
 ## Hand-Eye Calibration
 
