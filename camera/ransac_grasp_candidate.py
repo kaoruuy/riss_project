@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ransac-iterations", type=int, default=160)
     parser.add_argument("--plane-threshold-m", type=float, default=0.008)
     parser.add_argument("--object-min-height-m", type=float, default=0.01)
-    parser.add_argument("--object-max-height-m", type=float, default=0.08)
+    parser.add_argument("--object-max-height-m", type=float, default=0.30)
     parser.add_argument("--cluster-cell-m", type=float, default=0.025)
     parser.add_argument("--min-cluster-points", type=int, default=80)
     parser.add_argument("--max-cluster-width-m", type=float, default=0.5)

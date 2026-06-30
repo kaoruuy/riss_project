@@ -76,7 +76,7 @@ frames:
 python3 -m camera.ransac_grasp_candidate \
   --base-to-camera calibration/base_to_camera.yaml \
   --object-min-height-m 0.01 \
-  --object-max-height-m 0.08
+  --object-max-height-m 0.30
 ```
 
 The script uses the shared ZED settings, projects depth using the IMAGE camera
