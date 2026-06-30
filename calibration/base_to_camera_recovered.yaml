@@ -1,0 +1,150 @@
+frames:
+  parent: base
+  child: zed_left_camera_optical_frame
+calibrated: true
+method: table_marker_recovery
+timestamp: 1782852302.0733063
+image: calibration/table_marker_recovery.png
+table_references_file: calibration/table_marker_references.yaml
+zed_settings:
+  resolution: HD720
+  fps: 30
+  depth_mode: NEURAL
+  coordinate_units: METER
+  coordinate_system: IMAGE
+  left_view: LEFT
+  intrinsics_file: calibration/zed_intrinsics.yaml
+  eye: left
+  open_timeout: 30.0
+  left_image_stream_type: LEFT
+  left_image_rectification: rectified
+  sdk_version: 5.3.1
+used_marker_ids:
+- 1
+- 2
+- 3
+- 4
+translation_m:
+  x: 0.24884874046578995
+  y: -0.4403404949911295
+  z: 0.5031202004838292
+rotation_quaternion_xyzw:
+  x: 0.9238162189490652
+  y: 0.0009376679018225141
+  z: 0.10084092048977795
+  w: -0.36931534376509867
+transform_matrix:
+- - 0.9796604590673602
+  - 0.07621666406392565
+  - 0.18562436547742187
+  - 0.24884874046578995
+- - -0.07275173280115933
+  - -0.7272105952771456
+  - 0.6825481195425622
+  - -0.4403404949911295
+- - 0.18700954605141812
+  - -0.6821698983652283
+  - -0.7068745712288823
+  - 0.5031202004838292
+- - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+per_marker_estimates:
+- marker_id: 1
+  T_base_cam:
+  - - 0.9826064977808354
+    - 0.07666519249756847
+    - 0.16913579981243174
+    - 0.26176553462380003
+  - - -0.06305704546454999
+    - -0.7189355292721409
+    - 0.6922105992885895
+    - -0.44701781211205005
+  - - 0.17466619460033453
+    - -0.6908358365121899
+    - -0.7015964420194424
+    - 0.4964863598036392
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+- marker_id: 2
+  T_base_cam:
+  - - 0.9742143655869556
+    - 0.08217250492921874
+    - 0.2101286494451964
+    - 0.2308621266916367
+  - - -0.0783113126684995
+    - -0.7502733772489707
+    - 0.6564733031125943
+    - -0.4238790123040726
+  - - 0.21159798721193288
+    - -0.656001172883922
+    - -0.7244920655071232
+    - 0.5206210703432794
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+- marker_id: 3
+  T_base_cam:
+  - - 0.9799137841471605
+    - 0.07399904493613099
+    - 0.18518400845357075
+    - 0.2485541457496989
+  - - -0.07891772158932106
+    - -0.7089049094502193
+    - 0.7008750406288745
+    - -0.45319799741804345
+  - - 0.18314193637051618
+    - -0.7014114132988688
+    - -0.6888258563937197
+    - 0.49054696963332334
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+- marker_id: 4
+  T_base_cam:
+  - - 0.9814149545332456
+    - 0.07149986818059824
+    - 0.17807991427632938
+    - 0.2542131547980242
+  - - -0.07016569682709399
+    - -0.7300325084305858
+    - 0.6798009352915861
+    - -0.4372671581303519
+  - - 0.17860980378264837
+    - -0.6796619052769576
+    - -0.7114479829952574
+    - 0.5048264021550747
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+residuals:
+  translation_m:
+    mean: 0.017598681920803928
+    max: 0.030012982743377027
+    rms: 0.019498967049780783
+  rotation_deg:
+    mean: 1.411375289391161
+    max: 2.399787548666479
+    rms: 1.5596538877479451
+  per_marker:
+  - marker_id: 1
+    translation_error_m: 0.015982427144332154
+    rotation_error_deg: 1.1401153994073359
+  - marker_id: 2
+    translation_error_m: 0.030012982743377027
+    rotation_error_deg: 2.399787548666479
+  - marker_id: 3
+    translation_error_m: 0.017985780181158647
+    rotation_error_deg: 1.529488566378042
+  - marker_id: 4
+    translation_error_m: 0.006413537614347881
+    rotation_error_deg: 0.5761096431127873
+notes:
+- Recovered from fixed table-marker reference poses.
+- This updates camera extrinsics after camera motion without redoing hand-eye calibration.

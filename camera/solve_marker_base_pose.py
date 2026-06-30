@@ -18,7 +18,7 @@ from camera.table_marker_recovery import load_base_to_camera
 from camera.zed_config import DEFAULT_EYE, DEFAULT_RESOLUTION, camera_parameters_from_config
 
 
-DEFAULT_BASE_TO_CAMERA = Path("calibration/base_to_camera.yaml")
+DEFAULT_BASE_TO_CAMERA = Path("calibration/base_to_camera_recovered.yaml")
 
 
 def build_parser() -> argparse.ArgumentParser:

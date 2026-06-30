@@ -95,6 +95,9 @@ your target objects:
 --min-cluster-density 0.05
 ```
 
+Object points outside `--workspace-x`, `--workspace-y`, and `--workspace-z` are
+filtered before clustering, so unreachable objects are not selected as targets.
+
 Robot motion is disabled by default. To move the xArm to a safe approach pose
 above the detected center, pass `--move`; the command keeps the current TCP
 orientation, raises `z` by `--approach-height-m` (default `0.08` m), checks the

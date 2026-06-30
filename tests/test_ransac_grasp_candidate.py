@@ -12,6 +12,7 @@ from camera.ransac_grasp_candidate import (
     largest_grid_cluster,
     object_center,
     point_cloud_from_depth,
+    points_within_workspace,
     signed_plane_distances,
     transform_points,
     within_workspace,
@@ -140,6 +141,25 @@ class RansacGraspCandidateTests(unittest.TestCase):
 
         self.assertTrue(within_workspace(np.array([0.2, 0.0, 0.3]), args))
         self.assertFalse(within_workspace(np.array([1.2, 0.0, 0.3]), args))
+
+    def test_points_within_workspace_filters_outside_candidates(self) -> None:
+        args = argparse.Namespace(
+            workspace_x=[0.0, 1.0],
+            workspace_y=[-1.0, 1.0],
+            workspace_z=[0.0, 0.5],
+        )
+        points = np.array(
+            [
+                [0.2, 0.0, 0.3],
+                [1.2, 0.0, 0.3],
+                [0.2, -1.2, 0.3],
+                [0.2, 0.0, 0.8],
+            ]
+        )
+
+        mask = points_within_workspace(points, args)
+
+        np.testing.assert_array_equal(mask, [True, False, False, False])
 
 
 if __name__ == "__main__":

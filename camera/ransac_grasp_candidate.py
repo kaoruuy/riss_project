@@ -171,6 +171,10 @@ def process_frame(
     object_points_base = points_base[object_mask]
     object_points_cam = points_cam[object_mask]
     object_pixels = pixels[object_mask]
+    workspace_mask = points_within_workspace(object_points_base, args)
+    object_points_base = object_points_base[workspace_mask]
+    object_points_cam = object_points_cam[workspace_mask]
+    object_pixels = object_pixels[workspace_mask]
     if len(object_points_base) < args.min_cluster_points:
         return None
 
@@ -190,6 +194,8 @@ def process_frame(
     cluster_cam = object_points_cam[cluster_indices]
     cluster_pixels = object_pixels[cluster_indices]
     center_base = object_center(cluster_base, z_mode=args.z_mode)
+    if not within_workspace(center_base, args):
+        return None
     center_cam = transform_points(invert_transform(t_base_cam), center_base.reshape(1, 3))[0]
     return {
         "plane": plane,
@@ -456,6 +462,18 @@ def within_workspace(point: np.ndarray, args: argparse.Namespace) -> bool:
         args.workspace_x[0] <= point[0] <= args.workspace_x[1]
         and args.workspace_y[0] <= point[1] <= args.workspace_y[1]
         and args.workspace_z[0] <= point[2] <= args.workspace_z[1]
+    )
+
+
+def points_within_workspace(points: np.ndarray, args: argparse.Namespace) -> np.ndarray:
+    points = np.asarray(points, dtype=np.float64).reshape(-1, 3)
+    return (
+        (points[:, 0] >= args.workspace_x[0])
+        & (points[:, 0] <= args.workspace_x[1])
+        & (points[:, 1] >= args.workspace_y[0])
+        & (points[:, 1] <= args.workspace_y[1])
+        & (points[:, 2] >= args.workspace_z[0])
+        & (points[:, 2] <= args.workspace_z[1])
     )
 
 
